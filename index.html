@@ -8,746 +8,1253 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* 地図帳のような落ち着いた紙色＋道路グレー。強調はだいだい色1色。 */
 :root{
-  --bg:#EDF1EE; --panel:#FFFFFF; --ink:#22302B; --sub:#56665F; --line:#C7D1CC;
-  --accent:#1E6A84; --accent-weak:#DDEBF0; --ok:#2C7A4B; --ok-weak:#E2F2E8;
-  --ng:#A9532F; --ng-weak:#F8E8DF; --hl:#E07A1F; --hl-weak:#FFF0E0;
+  --bg:#EEF2F0; --panel:#FFFFFF; --ink:#22302B; --sub:#5A6862; --line:#C9D3CE;
+  --accent:#2465A0; --accent-weak:#E1ECF6;
+  --ok:#2C7A4B; --ok-weak:#E3F3E8; --ng:#A9532F; --ng-weak:#FAEBE2;
+  --hl:#E8770F; --hl-weak:#FFE6C9;
   --font:"BIZ UDPGothic","Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif;
   color-scheme:light;
 }
 [hidden]{display:none!important}
+*{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);
   -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
   touch-action:manipulation;overflow:hidden;-webkit-tap-highlight-color:transparent}
-rt{font-size:.5em;font-weight:400}
+rt{font-size:.5em;font-weight:400;line-height:1}
 button{font-family:var(--font);color:var(--ink);touch-action:manipulation;cursor:pointer}
 button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .screen{position:fixed;inset:0;display:flex;flex-direction:column;
   padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 
 /* ボタン */
-.btn{min-height:56px;min-width:56px;padding:8px 26px;border-radius:14px;border:2px solid var(--accent);
-  background:var(--panel);color:var(--accent);font-size:22px;font-weight:700;line-height:1.9}
+.btn{min-height:56px;min-width:56px;padding:6px 26px;border-radius:14px;border:2px solid var(--accent);
+  background:var(--panel);color:var(--accent);font-size:22px;font-weight:700;line-height:1.8}
 .btn.primary{background:var(--accent);color:#fff}
 .btn:disabled{opacity:.4;cursor:default}
 .iconbtn{min-width:52px;min-height:52px;border-radius:12px;border:2px solid var(--line);background:var(--panel);
-  display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:17px;font-weight:700;padding:0 12px}
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:17px;font-weight:700;padding:0 12px;line-height:1.7}
 
 /* スタート */
 #start{align-items:center;justify-content:center;overflow:auto}
 .topright{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 14px);display:flex;gap:10px}
-.startcard{display:flex;flex-direction:column;align-items:center;gap:18px;padding:24px 16px;text-align:center;max-width:640px}
+.startcard{display:flex;flex-direction:column;align-items:center;gap:18px;padding:24px 16px;text-align:center;max-width:680px}
 .startcard h1{margin:0;font-size:clamp(38px,7vw,58px);letter-spacing:.06em;line-height:1.6}
 .startcard .lead{font-size:21px;line-height:2;margin:0;color:var(--sub)}
 .chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.chip{border:2px solid var(--line);background:var(--panel);border-radius:999px;padding:4px 16px;font-size:18px;font-weight:700}
-.startillust{width:min(420px,86vw);height:auto}
+.chip{border:2px solid var(--line);background:var(--panel);border-radius:999px;padding:2px 16px;font-size:18px;font-weight:700;line-height:1.9}
+.startillust{width:min(380px,80vw);height:auto}
+.startcard .btn.primary{font-size:28px;padding:8px 56px}
 
 /* 問題画面 */
-#quiz header{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--panel);border-bottom:2px solid var(--line);flex:none}
-#quiz header .prog{flex:1;text-align:center;font-size:20px;font-weight:700}
-.qmain{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1.6fr) minmax(320px,1fr);gap:12px;padding:10px 14px}
-.mapcol{display:flex;flex-direction:column;gap:6px;min-height:0;min-width:0}
-#mapbox{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
-#mapsizer{position:relative;overflow:hidden;border:2px solid #9AA59F;border-radius:6px;background:#FAF9F4}
-#mapscale{position:absolute;left:0;top:0;width:1000px;height:760px;transform-origin:0 0}
-#mapscale svg{position:absolute;left:0;top:0}
-#labels{position:absolute;left:0;top:0;width:1000px;height:760px}
-#hl{pointer-events:none}
-.flab{position:absolute;transform:translateX(-50%);white-space:nowrap;font-size:20px;font-weight:700;line-height:1.75;padding:0 4px;border-radius:6px;color:#1f1f1f}
-.flab rt{font-size:10px}
-.station{position:absolute;transform:translate(-50%,-50%);background:#fff;border:3px solid #222;border-radius:4px;padding:0 12px;font-size:22px;font-weight:700;line-height:1.7;white-space:nowrap}
-.station rt{font-size:11px}
-.stop{position:absolute;transform:translate(-50%,-50%);background:#fff;border:2.5px solid #222;border-radius:8px;font-size:17px;font-weight:700;white-space:nowrap;line-height:1.65;padding:0 7px;display:flex;align-items:center;gap:4px}
-.stop rt{font-size:9px}
-.stop.v{writing-mode:vertical-rl;text-orientation:upright;padding:5px 0;line-height:1.5;font-size:16px}
-.stop .bi{width:16px;height:16px;flex:none}
-.northlab{position:absolute;font-size:18px;font-weight:700;line-height:1.7}
-.hlon{outline:4px solid var(--hl);background:var(--hl-weak)}
-.legend{flex:none;display:flex;flex-wrap:wrap;gap:4px 14px;background:var(--panel);border:2px solid var(--line);border-radius:10px;padding:4px 10px;font-size:14px;line-height:1.9;align-items:center}
-.legend .it{display:inline-flex;align-items:center;gap:4px}
+#quiz header{display:flex;align-items:center;gap:10px;padding:6px 12px;background:var(--panel);border-bottom:2px solid var(--line);flex:none}
+#quiz header .prog{font-size:20px;font-weight:700;line-height:1.8}
+#quiz header .mapno{font-size:16px;color:var(--sub);line-height:1.8}
+#quiz header .sp{flex:1}
+#quiz main{flex:1;display:flex;min-height:0}
+.mapside{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;align-items:center;padding:10px;gap:8px}
+.mapbox{flex:1 1 auto;width:100%;min-height:0;display:flex;justify-content:center;align-items:flex-start}
+.mapframe{position:relative;overflow:hidden;border:2px solid #333;background:#fff;flex:none}
+.mapcanvas{position:absolute;left:0;top:0;width:1000px;height:840px;transform-origin:0 0}
+.mapcanvas svg{position:absolute;left:0;top:0}
+.mapcanvas .labs,.mapcanvas .ovh{position:absolute;inset:0}
+.mapcanvas svg.ov,.mapcanvas .ovh{pointer-events:none}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;justify-content:center;font-size:15px;line-height:1.9;max-width:100%}
+.legend .li{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;padding:0 4px;border-radius:6px}
+.legend .li.hl{background:var(--hl-weak);outline:3px solid var(--hl)}
 .legend svg{flex:none}
-.legend b{font-size:14px}
 
-.panel{background:var(--panel);border:2px solid var(--line);border-radius:14px;padding:14px 16px;overflow-y:auto;min-height:0;display:flex;flex-direction:column;gap:12px;-webkit-overflow-scrolling:touch}
-.lvchip{align-self:flex-start;font-size:15px;font-weight:700;color:var(--accent);background:var(--accent-weak);border-radius:999px;padding:2px 12px;line-height:1.9}
-.qtext{font-size:21px;line-height:2.15;margin:0}
-.opts{display:grid;gap:10px}
-.opt{display:flex;align-items:center;gap:12px;text-align:left;min-height:58px;padding:6px 14px;border:2px solid var(--line);border-radius:12px;background:#fff;font-size:20px;line-height:2}
-.opt .mk{flex:none;width:38px;height:38px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;background:var(--bg);line-height:1}
-.opt.sel{border-color:var(--accent);background:var(--accent-weak)}
-.opt.sel .mk{background:var(--accent);color:#fff;border-color:var(--accent)}
-.opt.right{border-color:var(--ok);background:var(--ok-weak)}
-.opt.wrong{border-color:var(--ng);background:var(--ng-weak)}
-.opt .res{margin-left:auto;font-size:16px;font-weight:700;white-space:nowrap}
-.numrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.numrow input{width:130px;height:60px;font-size:30px;font-weight:700;text-align:center;border:2px solid var(--accent);border-radius:12px;font-family:var(--font);-webkit-user-select:text;user-select:text;color:var(--ink);background:#fff}
-.numrow .stp{width:60px;height:60px;border-radius:12px;border:2px solid var(--accent);background:#fff;color:var(--accent);font-size:24px;font-weight:700}
+.qside{width:clamp(320px,34vw,450px);flex:none;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--panel);border-left:2px solid var(--line);padding:14px 16px 28px}
+.qkind{display:inline-block;font-size:15px;font-weight:700;color:var(--accent);background:var(--accent-weak);border-radius:999px;padding:0 12px;line-height:2}
+.qtext{font-size:21px;line-height:2.05;margin:8px 0 10px}
+.qtext .opt{display:block;padding-left:1.2em;text-indent:-1.2em}
+.qextra{display:flex;justify-content:center;margin:4px 0 10px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px}
+.answers.one{grid-template-columns:1fr}
+.choice{min-height:58px;border-radius:12px;border:2px solid var(--line);background:#fff;font-size:20px;font-weight:700;line-height:1.8;padding:4px 10px;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.answers.one .choice{justify-content:flex-start;text-align:left;font-weight:400;font-size:19px}
+.choice.sel{border-color:var(--accent);background:var(--accent-weak);outline:2px solid var(--accent)}
+.choice.right{border-color:var(--ok);background:var(--ok-weak);outline:2px solid var(--ok)}
+.choice.wrong{border-color:var(--ng);background:var(--ng-weak)}
+.choice .mk{flex:none;font-weight:700;min-width:1.6em}
+.choice:disabled{cursor:default;color:var(--ink);opacity:1}
+.numrow{display:flex;align-items:center;justify-content:center;gap:10px;margin:10px 0 16px;flex-wrap:wrap}
+.numrow .step{width:60px;height:60px;border-radius:12px;border:2px solid var(--accent);background:#fff;color:var(--accent);font-size:26px;font-weight:700;line-height:1}
+.numrow input{width:120px;height:60px;border-radius:12px;border:2px solid var(--line);text-align:center;font-size:30px;font-weight:700;font-family:var(--font);color:var(--ink);-webkit-user-select:text;user-select:text}
 .numrow .unit{font-size:22px;font-weight:700}
-.feedback{border-radius:12px;padding:10px 14px;font-size:19px;line-height:2.1}
-.feedback.ok{background:var(--ok-weak);border:2px solid var(--ok)}
-.feedback.ng{background:var(--ng-weak);border:2px solid var(--ng)}
-.feedback .big{font-size:24px;font-weight:700}
-.feedback ul{margin:4px 0 0;padding-left:1.2em}
-.fig{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px}
-.fig .cap{font-size:16px;line-height:2}
-.actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.actrow{display:flex;justify-content:center}
+.feedback{margin-top:14px;border-radius:14px;padding:12px 14px;border:2px solid var(--line)}
+.feedback.ok{background:var(--ok-weak);border-color:var(--ok)}
+.feedback.ng{background:var(--ng-weak);border-color:var(--ng)}
+.verdict{font-size:24px;font-weight:700;line-height:1.9}
+.feedback.ok .verdict{color:var(--ok)}
+.feedback.ng .verdict{color:var(--ng)}
+.explain{font-size:19px;line-height:2;margin-top:6px;background:#fff;border-radius:10px;padding:8px 12px}
+.explain b{color:#B65A08}
+.orient{display:flex;justify-content:center;margin-top:8px}
+.feedback .actrow{margin-top:12px}
+
+/* 地図の文字 */
+.lab{position:absolute;white-space:nowrap;display:flex;align-items:flex-end;line-height:1.15;font-size:19px;padding:0 2px 3px;border-radius:6px}
+.lab.stop{font-size:20px;font-weight:700}
+.lab.right{justify-content:flex-end}
+.lab.park{font-weight:700;align-items:center}
+.lab.hl{background:var(--hl-weak);box-shadow:0 0 0 3px var(--hl)}
+.station{position:absolute;transform:translate(-50%,-50%);border:2.5px solid #222;background:#fff;font-weight:700;font-size:20px;line-height:1.2;padding:3px 10px 4px;white-space:nowrap}
+.station.v{display:flex;flex-direction:column;align-items:center;padding:6px 13px 6px 5px;line-height:1.12}
+.station.v .vc{position:relative;display:block}
+.station.v .vr{position:absolute;left:100%;top:0;font-size:10px;font-weight:400;writing-mode:vertical-rl;line-height:1;margin-left:1px}
+.station.hl{background:var(--hl-weak);box-shadow:0 0 0 3px var(--hl)}
+.otag{position:absolute;transform:translate(-50%,-50%);background:#fff;border:3px solid var(--hl);color:#9A4A00;border-radius:12px;padding:0 8px;font-size:21px;font-weight:700;line-height:1.3;white-space:nowrap}
+.otag.big{font-size:26px;padding:2px 10px}
+.otag.dark{border-color:#333;color:#222}
+.mapcanvas.dimbus .bus{opacity:.25}
 
 /* 結果 */
 #result{align-items:center;overflow:auto}
-.rescard{width:min(640px,100%);box-sizing:border-box;padding:28px 16px;display:flex;flex-direction:column;gap:16px;align-items:center}
-.rescard h2{margin:0;font-size:34px;line-height:1.8}
-.score{font-size:30px;font-weight:700;line-height:2}
-.score .n{font-size:56px;color:var(--accent);font-variant-numeric:tabular-nums}
-.reslist{width:100%;display:grid;gap:8px}
-.resrow{display:flex;align-items:center;gap:12px;background:var(--panel);border:2px solid var(--line);border-radius:12px;padding:6px 14px;font-size:18px;line-height:2}
-.resrow .no{width:2.2em;font-weight:700;color:var(--sub)}
-.resrow .mark{margin-left:auto;font-weight:700;white-space:nowrap}
-.resrow .mark.o{color:var(--ok)} .resrow .mark.x{color:var(--ng)}
+.rescard{width:min(720px,94vw);margin:28px auto;background:var(--panel);border-radius:18px;padding:22px 20px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.rescard h2{margin:0;font-size:34px;line-height:1.7}
+.score{font-size:30px;font-weight:700;line-height:1.8}
+.reslist{width:100%;display:grid;grid-template-columns:1fr;gap:6px}
+.resrow{display:flex;align-items:center;gap:12px;font-size:19px;line-height:1.9;padding:4px 12px;border-radius:10px;background:#F6F8F7}
+.resrow .m{font-weight:700;min-width:6.5em}
+.resrow.ok .m{color:var(--ok)}
+.resrow.ng .m{color:var(--ng)}
+.resbtns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
 
 /* モーダル */
-.modal{position:fixed;inset:0;background:rgba(30,40,36,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
-.mbox{background:var(--panel);border-radius:16px;padding:20px 20px;width:min(620px,100%);max-height:calc(100% - 32px);overflow:auto;box-sizing:border-box;display:flex;flex-direction:column;gap:14px}
-.mbox h3{margin:0;font-size:24px;line-height:1.8}
-.mbox p,.mbox li{font-size:19px;line-height:2.1;margin:0}
-.mbox ul{margin:0;padding-left:1.2em}
-.setrow{display:flex;flex-direction:column;gap:8px}
-.setrow .lab{font-size:18px;font-weight:700}
+.modal{position:fixed;inset:0;background:rgba(20,30,26,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+.mbox{background:var(--panel);border-radius:18px;padding:20px 22px;width:min(640px,96vw);max-height:92vh;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.mbox h3{margin:0;font-size:26px;line-height:1.8}
+.mbox p,.mbox li{font-size:19px;line-height:2;margin:0}
+.mbox ol{margin:0;padding-left:1.4em}
+.mbox .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.mbox .lbl{font-size:18px;font-weight:700;min-width:5em}
 .seg{display:flex;flex-wrap:wrap;gap:8px}
-.seg button{min-height:52px;min-width:64px;border-radius:12px;border:2px solid var(--line);background:#fff;font-size:18px;font-weight:700;padding:4px 14px}
-.seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.lvdesc{font-size:15px;color:var(--sub);line-height:1.7}
-.chk{display:flex;align-items:center;gap:10px;font-size:18px;line-height:2;min-height:44px}
+.seg button{min-height:48px;min-width:56px;border-radius:10px;border:2px solid var(--line);background:#fff;font-size:18px;font-weight:700;padding:0 14px}
+.seg button.on{border-color:var(--accent);background:var(--accent);color:#fff}
+.lvdesc{font-size:16px;color:var(--sub);line-height:1.7}
+.chk{display:flex;align-items:center;gap:10px;font-size:18px;min-height:48px}
 .chk input{width:28px;height:28px}
+.mbtns{display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button{width:52px;height:52px;border-radius:10px;border:2px solid var(--accent);background:#fff;color:var(--accent);font-size:22px;font-weight:700}
+.stepper input{width:80px;height:52px;border-radius:10px;border:2px solid var(--line);text-align:center;font-size:24px;font-weight:700;font-family:var(--font);-webkit-user-select:text;user-select:text}
 
-/* SVG強調 */
-.ring{fill:none;stroke:var(--hl);stroke-width:5}
-.harrow{fill:none;stroke:var(--hl);stroke-width:8;stroke-linecap:round;stroke-linejoin:round;opacity:.9}
-.harrow2{fill:none;stroke:#1E6A84;stroke-width:8;stroke-linecap:round;stroke-linejoin:round;opacity:.85;stroke-dasharray:16 10}
-.badge circle{fill:var(--hl);stroke:#fff;stroke-width:2}
-.badge text{fill:#fff;font-size:18px;font-weight:700;font-family:var(--font)}
-.mins circle{fill:#fff;stroke:#333;stroke-width:2}
-.mins text{font-size:17px;font-weight:700;font-family:var(--font);fill:#222}
-.mins.on circle{stroke:var(--hl);stroke-width:4}
+/* 拡大 */
+#zoom{position:fixed;inset:0;background:#fff;z-index:40;display:flex;flex-direction:column}
+#zoom .zbar{display:flex;align-items:center;gap:10px;padding:8px 12px;padding-top:calc(env(safe-area-inset-top,0px) + 8px);border-bottom:2px solid var(--line);flex:none}
+#zoom .zbar .sp{flex:1}
+#zoom .zscroll{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y pinch-zoom}
+#zoom .zframe{position:relative;margin:10px}
 
-@media (orientation:portrait),(max-width:820px){
-  .qmain{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);overflow:hidden}
-  #mapbox{flex:none;height:min(50vh,72vw)}
-  .qtext{font-size:20px}
+@media (max-aspect-ratio:1/1){
+  #quiz main{flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .mapside{flex:none}
+  .mapbox{flex:none}
+  .qside{width:auto;border-left:0;border-top:2px solid var(--line);overflow:visible;flex:none}
 }
 @media (max-width:520px){
-  .qmain{padding:8px}
-  .opt{font-size:18px}
-  .btn{font-size:20px;padding:6px 18px}
+  .qtext{font-size:19px}
+  .choice{font-size:18px}
+  #quiz header .mapno{display:none}
+  .iconbtn{font-size:15px;padding:0 8px}
 }
 </style>
 </head>
 <body>
-<div id="start" class="screen">
+
+<!-- スタート画面 -->
+<section id="start" class="screen">
   <div class="topright">
-    <button class="iconbtn" id="helpBtn" aria-label="つかいかた">？</button>
-    <button class="iconbtn" id="gearBtn" aria-label="設定">
-      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="#22302B" stroke-width="2" d="M12 8.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7zM19.4 13.5l1.8 1.4-1.8 3.1-2.2-.8a7 7 0 0 1-2 1.2l-.3 2.3h-3.6l-.3-2.3a7 7 0 0 1-2-1.2l-2.2.8-1.8-3.1 1.8-1.4a7 7 0 0 1 0-2.4L2.8 9.7l1.8-3.1 2.2.8a7 7 0 0 1 2-1.2l.3-2.3h3.6l.3 2.3a7 7 0 0 1 2 1.2l2.2-.8 1.8 3.1-1.8 1.4a7 7 0 0 1 0 2.4z"/></svg>設定
+    <button class="iconbtn" id="btnHelp"></button>
+    <button class="iconbtn" id="btnSettings" aria-label="設定">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22302B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
     </button>
   </div>
   <div class="startcard">
-    <svg class="startillust" viewBox="0 0 420 170" aria-hidden="true">
-      <rect width="420" height="170" fill="#FAF9F4" stroke="#9AA59F" stroke-width="2"/>
-      <rect x="0" y="16" width="420" height="10" fill="#222"/><rect x="0" y="18.5" width="420" height="5" fill="#fff" stroke-dasharray="20 20"/>
-      <line x1="0" y1="21" x2="420" y2="21" stroke="#fff" stroke-width="5" stroke-dasharray="22 22"/>
-      <rect x="0" y="52" width="420" height="14" fill="#D3D6D0"/><rect x="0" y="118" width="420" height="14" fill="#D3D6D0"/>
-      <rect x="90" y="52" width="14" height="118" fill="#D3D6D0"/><rect x="230" y="52" width="14" height="118" fill="#D3D6D0"/>
-      <rect x="97" y="59" width="140" height="66" fill="none" stroke="#1F4E8C" stroke-width="3.5" stroke-dasharray="0.1 8" stroke-linecap="round"/>
-      <circle cx="50" cy="92" r="9" fill="#fff" stroke="#222" stroke-width="2.2"/><path d="M45 88h10M45 91h10M50 91v6" stroke="#222" stroke-width="2" fill="none"/>
-      <text x="167" y="100" text-anchor="middle" font-size="22" font-weight="700" fill="#222" font-family="BIZ UDPGothic">文</text>
-      <circle cx="320" cy="92" r="9" fill="#fff" stroke="#222" stroke-width="2.2"/><circle cx="320" cy="92" r="4.5" fill="none" stroke="#222" stroke-width="2.2"/>
-      <g transform="translate(392,92)"><path d="M0 -22 L8 6 L0 1 L-8 6Z" fill="#222"/><text y="20" text-anchor="middle" font-size="13" font-weight="700" font-family="BIZ UDPGothic">N</text></g>
+    <h1 id="ttl"></h1>
+    <svg class="startillust" viewBox="0 0 380 200" aria-hidden="true">
+      <rect x="0" y="0" width="380" height="200" rx="16" fill="#fff" stroke="#C9D3CE" stroke-width="2"/>
+      <path d="M0,34H380" stroke="#222" stroke-width="7"/><path d="M0,34H380" stroke="#fff" stroke-width="3.5" stroke-dasharray="12 12"/>
+      <g fill="#D3D3D3"><rect x="60" y="54" width="14" height="130"/><rect x="180" y="54" width="14" height="130"/><rect x="300" y="54" width="14" height="130"/><rect x="40" y="62" width="300" height="14"/><rect x="40" y="120" width="300" height="14"/><rect x="40" y="170" width="300" height="12"/></g>
+      <path d="M67,69H307V127H187" fill="none" stroke="#333" stroke-width="4" stroke-dasharray="0.1 9" stroke-linecap="round"/>
+      <path d="M232,62l10,7l-10,7z" fill="#333"/>
+      <circle cx="120" cy="98" r="9" fill="#fff" stroke="#222" stroke-width="2.4"/><path d="M115,94H125M115,97.5H125M120,97.5V104" stroke="#222" stroke-width="2.2" fill="none"/>
+      <text x="246" y="106" font-size="22" font-weight="700" text-anchor="middle" font-family="BIZ UDPGothic,sans-serif" fill="#222">文</text>
+      <circle cx="120" cy="153" r="9" fill="#fff" stroke="#222" stroke-width="2.4"/><circle cx="120" cy="153" r="4.5" fill="none" stroke="#222" stroke-width="2.4"/>
+      <g transform="translate(350,110)"><text y="-28" font-size="15" font-weight="700" text-anchor="middle" font-family="sans-serif" fill="#222">N</text><path d="M0,-22V26" stroke="#222" stroke-width="2.5"/><path d="M0,-22L-8,0L0,-4Z" fill="#222"/></g>
     </svg>
-    <h1><ruby>地図<rt>ちず</rt></ruby>を<ruby>読<rt>よ</rt></ruby>もう</h1>
-    <p class="lead"><ruby>地図<rt>ちず</rt></ruby>を<ruby>見<rt>み</rt></ruby>て、もんだいにこたえるよ。</p>
-    <div class="chips"><span class="chip" id="chipLv"></span><span class="chip" id="chipNum"></span></div>
-    <button class="btn primary" id="startBtn" style="min-width:220px;font-size:26px">はじめる</button>
+    <p class="lead" id="lead"></p>
+    <div class="chips" id="chips"></div>
+    <button class="btn primary" id="btnStart">はじめる</button>
   </div>
-</div>
+</section>
 
-<div id="quiz" class="screen" hidden>
+<!-- 問題画面 -->
+<section id="quiz" class="screen" hidden>
   <header>
-    <button class="iconbtn" id="quitBtn">おわる</button>
-    <div class="prog" id="prog"></div>
-    <span class="chip" id="qLv" style="font-size:16px"></span>
+    <span class="prog" id="prog"></span>
+    <span class="mapno" id="mapno"></span>
+    <span class="sp"></span>
+    <button class="iconbtn" id="btnZoom"></button>
+    <button class="iconbtn" id="btnQuit">やめる</button>
   </header>
-  <div class="qmain">
-    <div class="mapcol">
-      <div id="mapbox">
-        <div id="mapsizer">
-          <div id="mapscale">
-            <svg id="base" width="1000" height="760" viewBox="0 0 1000 760"></svg>
-            <div id="labels"></div>
-            <svg id="hl" width="1000" height="760" viewBox="0 0 1000 760"></svg>
-          </div>
-        </div>
-      </div>
+  <main id="qmain">
+    <div class="mapside">
+      <div class="mapbox" id="mapbox"><div class="mapframe" id="mapframe"><div class="mapcanvas" id="mapcanvas"></div></div></div>
       <div class="legend" id="legend"></div>
     </div>
-    <div class="panel" id="panel"></div>
-  </div>
-</div>
-
-<div id="result" class="screen" hidden>
-  <div class="rescard">
-    <h2>けっか</h2>
-    <div class="score" id="score"></div>
-    <div class="reslist" id="reslist"></div>
-    <div class="actions" style="justify-content:center">
-      <button class="btn" id="homeBtn">はじめにもどる</button>
-      <button class="btn primary" id="againBtn">もういちど</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal" id="setModal" hidden>
-  <div class="mbox" role="dialog" aria-label="設定">
-    <h3>設定</h3>
-    <div class="setrow">
-      <span class="lab">レベル</span>
-      <div class="seg" id="segLv"></div>
-      <div class="lvdesc" id="lvDesc"></div>
-    </div>
-    <div class="setrow">
-      <span class="lab">問題数</span>
-      <div class="numrow">
-        <input id="cntIn" inputmode="numeric" aria-label="問題数">
-        <button class="stp" id="cntUp" aria-label="ふやす">△</button>
-        <button class="stp" id="cntDn" aria-label="へらす">▽</button>
-        <span class="unit">問（3〜20）</span>
+    <div class="qside" id="qside">
+      <span class="qkind" id="qkind"></span>
+      <div class="qtext" id="qtext"></div>
+      <div class="qextra" id="qextra"></div>
+      <div class="answers" id="answers"></div>
+      <div class="actrow"><button class="btn primary" id="btnAnswer">こたえる</button></div>
+      <div class="feedback" id="feedback" hidden>
+        <div class="verdict" id="verdict"></div>
+        <div class="explain" id="explain"></div>
+        <div class="orient" id="orient"></div>
+        <div class="actrow"><button class="btn primary" id="btnNext">つぎへ</button></div>
       </div>
     </div>
-    <div class="setrow">
-      <span class="lab">効果音</span>
-      <div class="seg" id="segSnd"><button data-v="1">ON</button><button data-v="0">OFF</button></div>
+  </main>
+</section>
+
+<!-- 結果画面 -->
+<section id="result" class="screen" hidden>
+  <div class="rescard">
+    <h2 id="resTitle"></h2>
+    <div class="score" id="score"></div>
+    <div class="reslist" id="reslist"></div>
+    <div class="resbtns">
+      <button class="btn primary" id="btnAgain">もういちど</button>
+      <button class="btn" id="btnHome">はじめにもどる</button>
     </div>
-    <div class="actions"><button class="btn primary" id="setClose">とじる</button></div>
+  </div>
+</section>
+
+<!-- 拡大 -->
+<div id="zoom" hidden>
+  <div class="zbar">
+    <button class="iconbtn" id="zOut" aria-label="小さく">－</button>
+    <button class="iconbtn" id="zIn" aria-label="大きく">＋</button>
+    <span class="sp"></span>
+    <button class="iconbtn" id="zClose">とじる</button>
+  </div>
+  <div class="zscroll" id="zscroll"><div class="zframe" id="zframe"></div></div>
+</div>
+
+<!-- 使い方 -->
+<div class="modal" id="mHelp" hidden>
+  <div class="mbox">
+    <h3 id="helpTtl"></h3>
+    <ol id="helpList"></ol>
+    <label class="chk"><input type="checkbox" id="chkNoHelp"><span id="noHelpTxt"></span></label>
+    <div class="mbtns"><button class="btn primary" id="btnHelpClose">とじる</button></div>
   </div>
 </div>
 
-<div class="modal" id="helpModal" hidden>
-  <div class="mbox" role="dialog" aria-label="つかいかた">
-    <h3>つかいかた</h3>
-    <ul>
-      <li><ruby>地図<rt>ちず</rt></ruby>を<ruby>見<rt>み</rt></ruby>て、もんだいにこたえるよ。<ruby>上<rt>うえ</rt></ruby>が<ruby>北<rt>きた</rt></ruby>だよ。</li>
-      <li>えらぶもんだいは、こたえをえらんで「こたえる」をおしてね。</li>
-      <li><ruby>数<rt>かず</rt></ruby>のもんだいは、△▽をおすか、<ruby>数字<rt>すうじ</rt></ruby>を<ruby>入<rt>い</rt></ruby>れてね。</li>
-      <li>こたえたあとは、<ruby>地図<rt>ちず</rt></ruby>の<ruby>中<rt>なか</rt></ruby>の<ruby>見<rt>み</rt></ruby>るところに、だいだい<ruby>色<rt>いろ</rt></ruby>のしるしがつくよ。</li>
-    </ul>
-    <label class="chk"><input type="checkbox" id="hideHelp"><span><ruby>次<rt>つぎ</rt></ruby>からは<ruby>出<rt>だ</rt></ruby>さない</span></label>
-    <div class="actions"><button class="btn primary" id="helpClose">とじる</button></div>
+<!-- 設定（教員） -->
+<div class="modal" id="mSettings" hidden>
+  <div class="mbox">
+    <h3>設定</h3>
+    <div>
+      <div class="row"><span class="lbl">レベル</span><div class="seg" id="segLevel"></div></div>
+      <div class="lvdesc" id="lvdesc"></div>
+    </div>
+    <div class="row"><span class="lbl">問題数</span>
+      <div class="stepper"><button id="cntDown" aria-label="減らす">▽</button><input id="cntInput" inputmode="numeric"><button id="cntUp" aria-label="増やす">△</button></div>
+      <span style="font-size:16px;color:var(--sub)">4〜20問（地図1枚につき4問）</span>
+    </div>
+    <div class="row"><span class="lbl">効果音</span><div class="seg" id="segSound"><button data-v="1">ON</button><button data-v="0">OFF</button></div></div>
+    <div class="mbtns"><button class="btn primary" id="btnSetClose">とじる</button></div>
+  </div>
+</div>
+
+<!-- やめる確認 -->
+<div class="modal" id="mQuit" hidden>
+  <div class="mbox" style="width:min(460px,94vw);align-items:center;text-align:center">
+    <h3>とちゅうで やめる？</h3>
+    <div class="mbtns" style="justify-content:center">
+      <button class="btn" id="btnQuitNo">つづける</button>
+      <button class="btn primary" id="btnQuitYes">やめる</button>
+    </div>
   </div>
 </div>
 
 <script>
-// ===== GEN-START（地図と問題の自動生成：DOMを使わない部分） =====
-const R=s=>s.replace(/\{([^|{}]+)\|([^{}]+)\}/g,'<ruby>$1<rt>$2</rt></ruby>');
+'use strict';
+/* ====================== 共通 ====================== */
+const $=s=>document.querySelector(s);
+const R=s=>String(s).replace(/\{([^|{}]+)\|([^{}]+)\}/g,'<ruby>$1<rt>$2</rt></ruby>');
 const rnd=n=>Math.floor(Math.random()*n);
 const pick=a=>a[rnd(a.length)];
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
-const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const sample=(a,n)=>shuffle(a).slice(0,n);
+const dist=(a,b,c,d)=>Math.hypot(a-c,b-d);
+const Q=s=>'「'+s+'」';
+/* 「分」のふりがな（〇分 の読み） */
+const FUN=n=>{const d=n%10;return n+(([1,3,4,6,8,0].includes(d))?'{分|ぷん}':'{分|ふん}');};
 
-const W=1000,H=760;
-const RX=[40,270,500,730,960], RY=[95,285,475,665], RW=26;
-const NC=4,NR=3;
-const bcx=c=>(RX[c]+RX[c+1])/2, bcy=r=>(RY[r]+RY[r+1])/2;
-
-const TYPES={
-  yubin:{w:'{郵便局|ゆうびんきょく}',sym:'yubin'},
-  sho:{w:'{小学校|しょうがっこう}',sym:'school'},
-  chu:{w:'{中学校|ちゅうがっこう}',sym:'school'},
-  koko:{w:'{高校|こうこう}',sym:'school'},
-  byoin:{w:'{病院|びょういん}',sym:'byoin'},
-  keisatsu:{w:'{警察署|けいさつしょ}',sym:'keisatsu',solo:true},
-  shobo:{w:'{消防署|しょうぼうしょ}',sym:'shobo',solo:true},
-  shiyaku:{w:'{市役所|しやくしょ}',sym:'shiyaku',solo:true},
-  tosho:{w:'{図書館|としょかん}',sym:'tosho'},
-  haku:{w:'{博物館|はくぶつかん}',sym:'haku'},
-  ginko:{w:'{銀行|ぎんこう}',sym:'dot'},
-  super:{w:'スーパー',sym:'dot'},
-  rest:{w:'レストラン',sym:'dot'},
-  koen:{w:'{公園|こうえん}',sym:'park'},
-  yakkyoku:{w:'{薬局|やっきょく}',sym:'dot'}
+const store={
+  get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v);}catch(e){return d;}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 };
-const SHORTSTOP=['shiyaku','keisatsu','shobo','tosho','haku','byoin','koen'];
-const SYMNAME={yubin:'{郵便局|ゆうびんきょく}',school:'{学校|がっこう}',byoin:'{病院|びょういん}',keisatsu:'{警察署|けいさつしょ}',shobo:'{消防署|しょうぼうしょ}',shiyaku:'{市役所|しやくしょ}',tosho:'{図書館|としょかん}',haku:'{博物館|はくぶつかん}',dot:'そのほかの{建物|たてもの}'};
-const PREF=['さくら','ひまわり','あおば','つばき','かえで','もみじ','すずらん','あさひ','なのはな','たんぽぽ','わかば','にじ','ゆめ','すみれ','こすもす','ふたば'];
-const STPREF=['みどり','そら','ひかり','あおい','はるか','みなと','こだま'];
-const CHOME=['もり','おか','やま','かわ','いけ','はら','たに','まつ'];
+const KEY_SET='chizuyomi01_settings', KEY_HELP='chizuyomi01_nohelp';
+const settings=Object.assign({level:1,count:8,sound:true},store.get(KEY_SET,{}));
 
-const DIRV={N:[0,-1],E:[1,0],S:[0,1],W:[-1,0]};
-const DN={N:'{北|きた}',E:'{東|ひがし}',S:'{南|みなみ}',W:'{西|にし}'};
-const UPDN={N:'{上|うえ}',S:'{下|した}',E:'{右|みぎ}',W:'{左|ひだり}'};
-const vecDir=v=>v[0]===0?(v[1]<0?'N':'S'):(v[0]>0?'E':'W');
-const leftOf=v=>[v[1],-v[0]], rightOf=v=>[-v[1],v[0]];
-const DIR8=['北','北東','東','南東','南','南西','西','北西'];
-const DR8YOMI={北:'きた',北東:'ほくとう',東:'ひがし',南東:'なんとう',南:'みなみ',南西:'なんせい',西:'にし',北西:'ほくせい'};
-const DR=d=>`{${d}|${DR8YOMI[d]}}`;
-
-function makeFacTypes(){
-  const list=[];const add=(t,n)=>{for(let i=0;i<n;i++)list.push(t);};
-  add('yubin',2+rnd(2)); add('rest',2); add('ginko',1+rnd(2));
-  const singles=shuffle(['sho','chu','koko','byoin','keisatsu','shobo','shiyaku','tosho','haku','super','koen','yakkyoku']);
-  while(list.length<11) list.push(singles.pop());
-  return shuffle(list);
+/* 効果音 */
+let actx=null;
+function unlockAudio(){
+  try{
+    if(!actx){const AC=window.AudioContext||window.webkitAudioContext;if(AC)actx=new AC();}
+    if(actx&&actx.state==='suspended')actx.resume();
+  }catch(e){}
 }
-function buildLoop(ya,yb){
-  const xa=1,xb=3,s=[];
-  for(let i=xa;i<xb;i++) s.push({a:[i,ya],b:[i+1,ya],side:'top',n:[0,-1]});
-  for(let j=ya;j<yb;j++) s.push({a:[xb,j],b:[xb,j+1],side:'right',n:[1,0]});
-  for(let i=xb;i>xa;i--) s.push({a:[i,yb],b:[i-1,yb],side:'bottom',n:[0,1]});
-  for(let j=yb;j>ya;j--) s.push({a:[xa,j],b:[xa,j-1],side:'left',n:[-1,0]});
-  return s; // 時計回りの順
-}
-const gp=([i,j])=>[RX[i],RY[j]];
-const facAt=(m,c,r)=>m.facs.find(f=>f.c===c&&f.r===r);
-function countTypes(m){const o={};m.facs.forEach(f=>o[f.t]=(o[f.t]||0)+1);return o;}
-function sideBlock(i,j,h,sv){
-  if(h[1]===0){const c=Math.min(i,i+h[0]);const r=sv[1]<0?j-1:j;return [c,r];}
-  const r=Math.min(j,j+h[1]);const c=sv[0]<0?i-1:i;return [c,r];
-}
-
-function genMap(two){
-  for(let t=0;t<200;t++){
-    const m={two};
-    const sp=shuffle(STPREF);
-    m.stations=[{id:'st0',kind:'st',name:sp[0]+'{駅|えき}',x:RX[1],y:40,i:1},{id:'st1',kind:'st',name:sp[1]+'{駅|えき}',x:RX[3],y:40,i:3}];
-    const types=makeFacTypes();
-    const blocks=[];for(let r=0;r<NR;r++)for(let c=0;c<NC;c++)blocks.push([c,r]);
-    const empty=pick(blocks.filter(b=>b[1]!==1));
-    const used=blocks.filter(b=>!(b[0]===empty[0]&&b[1]===empty[1]));
-    const cnt={};types.forEach(x=>cnt[x]=(cnt[x]||0)+1);
-    const prefs=shuffle(PREF);let pi=0;
-    m.facs=used.map((b,i)=>{const ty=types[i],T=TYPES[ty];const pre=(T.solo&&cnt[ty]===1)?'':prefs[pi++];
-      return {id:'f'+i,kind:'f',t:ty,c:b[0],r:b[1],x:bcx(b[0]),y:bcy(b[1]),name:pre+T.w};});
-    const yy=two?[0,3]:pick([[0,3],[0,2],[1,3]]);
-    m.ya=yy[0];m.yb=yy[1];
-    m.segs=buildLoop(m.ya,m.yb);
-    const ch=m.segs.map(()=>Math.random()<0.62);
-    if(two) m.segs.forEach((s,k)=>{if(s.side==='left'||s.side==='right'){const rr=Math.min(s.a[1],s.b[1]);if(rr!==1)ch[k]=true;}});
-    if(ch.filter(Boolean).length<5) continue;
-    m.stops=[];
-    m.segs.forEach((s,k)=>{if(!ch[k])return;const A=gp(s.a),B=gp(s.b);
-      m.stops.push({id:'s'+m.stops.length,kind:'s',k:m.stops.length,seg:k,x:(A[0]+B[0])/2,y:(A[1]+B[1])/2,vertical:s.a[0]===s.b[0],side:s.side,row:Math.min(s.a[1],s.b[1])});});
-    // 名前
-    const names=new Set();const tc=countTypes(m);const cp=shuffle(CHOME);let ci=0;
-    m.stations.forEach(st=>{
-      if(m.ya!==0)return;
-      const tops=m.stops.filter(s=>s.side==='top'&&!s.name).sort((a,b)=>Math.abs(a.x-st.x)-Math.abs(b.x-st.x));
-      if(tops.length&&Math.abs(tops[0].x-st.x)<=120){tops[0].name=st.name+'{前|まえ}';names.add(tops[0].name);}
-    });
-    m.stops.forEach(s=>{
-      if(s.name)return;
-      const sg=m.segs[s.seg];const h=[sg.b[0]-sg.a[0],sg.b[1]-sg.a[1]];
-      const adj=[sideBlock(sg.a[0],sg.a[1],h,leftOf(h)),sideBlock(sg.a[0],sg.a[1],h,rightOf(h))].map(b=>facAt(m,b[0],b[1])).filter(Boolean);
-      const cand=shuffle(adj).filter(f=>SHORTSTOP.includes(f.t)&&tc[f.t]===1);
-      for(const f of cand){const nm=TYPES[f.t].w+'{前|まえ}';if(!names.has(nm)&&Math.random()<0.8){s.name=nm;break;}}
-      if(!s.name){let nm;do{nm=cp[ci%cp.length]+(1+rnd(4))+'{丁目|ちょうめ}';ci++;}while(names.has(nm));s.name=nm;}
-      names.add(s.name);
-    });
-    const cw0=Math.random()<0.5;
-    m.lines=two?[{name:'ほし{線|せん}',cw:cw0,style:'dot'},{name:'つき{線|せん}',cw:!cw0,style:'dash'}]:[{name:'バス',cw:cw0,style:'dot'}];
-    if(two) m.mins=m.stops.map(()=>2+rnd(4));
-    return m;
-  }
-  return null;
-}
-
-// ループ上の経路
-function loopPts(m,a,b,cw){
-  const n=m.segs.length,P=[[a.x,a.y]];let k=a.seg;
-  if(cw){while(k!==b.seg){P.push(gp(m.segs[k].b));k=(k+1)%n;}}
-  else{while(k!==b.seg){P.push(gp(m.segs[k].a));k=(k-1+n)%n;}}
-  P.push([b.x,b.y]);return P;
-}
-function stopsBetween(m,a,b,cw){const n=m.stops.length,r=[];let k=a.k;
-  while(k!==b.k){k=cw?(k+1)%n:(k-1+n)%n;r.push(m.stops[k]);}return r;}
-function minsBetween(m,a,b,cw){const n=m.stops.length;let k=a.k,t=0,ids=[];
-  while(k!==b.k){if(cw){t+=m.mins[k];ids.push(k);k=(k+1)%n;}else{const p=(k-1+n)%n;t+=m.mins[p];ids.push(p);k=p;}}
-  return {t,ids};}
-function minsPos(m,i){ // stop i → stop i+1（時計回り）の数字の位置
-  const n=m.stops.length,a=m.stops[i],b=m.stops[(i+1)%n],L=m.segs.length;
-  const pts=[];let k=a.seg;while(k!==b.seg){pts.push(gp(m.segs[k].b));k=(k+1)%L;}
-  const p=pts[Math.floor((pts.length-1)/2)];
-  const cx=(RX[1]+RX[3])/2,cy=(RY[m.ya]+RY[m.yb])/2;
-  return [p[0]+Math.sign(cx-p[0])*30,p[1]+Math.sign(cy-p[1])*30];
-}
-
-// ---------- 問題 ----------
-const Fq=f=>'「'+f.name+'」';
-const Sq=s=>'「'+s.name+'」バス{停|てい}';
-const lineName=L=>L.name==='バス'?'バス':L.name;
-function mkChoice(list,correct,keep){
-  const u=[...new Set(list)];if(!u.includes(correct))u.push(correct);
-  const arr=keep?u:shuffle(u);return {type:'choice',opts:arr,ans:arr.indexOf(correct)};
-}
-const ringF=f=>`<ellipse cx="${f.x}" cy="${f.y+4}" rx="100" ry="50" class="ring"/>`;
-const ringS=s=>s.vertical?`<ellipse cx="${s.x}" cy="${s.y}" rx="30" ry="82" class="ring"/>`:`<ellipse cx="${s.x}" cy="${s.y}" rx="92" ry="28" class="ring"/>`;
-const ringSt=s=>`<ellipse cx="${s.x}" cy="${s.y}" rx="95" ry="32" class="ring"/>`;
-const ring=o=>o.kind==='f'?ringF(o):o.kind==='s'?ringS(o):ringSt(o);
-function shorten(p,q,d1,d2){const L=Math.hypot(q[0]-p[0],q[1]-p[1]);const ux=(q[0]-p[0])/L,uy=(q[1]-p[1])/L;return [[p[0]+ux*d1,p[1]+uy*d1],[q[0]-ux*d2,q[1]-uy*d2]];}
-const arrow=(pts,cls)=>`<polyline points="${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" class="${cls||'harrow'}" marker-end="url(#${cls==='harrow2'?'ah2':'ah'})"/>`;
-const badge=(x,y,t)=>`<g class="badge"><circle cx="${x}" cy="${y}" r="16"/><text x="${x}" y="${y+6.5}" text-anchor="middle">${t}</text></g>`;
-const badgePos=s=>s.vertical?[s.x+34,s.y-40]:[s.x+60,s.y+34];
-function svgRuby(x,y,k,yomi,size,fill){return `<text x="${x}" y="${y-size*0.95}" text-anchor="middle" font-size="${size*0.45}" fill="${fill}" font-family="BIZ UDPGothic">${yomi}</text><text x="${x}" y="${y}" text-anchor="middle" font-size="${size}" font-weight="700" fill="${fill}" font-family="BIZ UDPGothic">${k}</text>`;}
-
-const G={};
-G.nearStation={lv:1,cat:'{近|ちか}い{駅|えき}',f(m){
-  const f=pick(m.facs);const d=m.stations.map(s=>dist(f,s));const ans=m.stations[d[0]<d[1]?0:1];
-  return {q:`${Fq(f)}から{最|もっと}も{近|ちか}い{駅|えき}は、どちらですか。`,...mkChoice(m.stations.map(s=>s.name),ans.name,true),
-    ex:{t:`${Fq(f)}から{見|み}ると、「${ans.name}」のほうが{近|ちか}いよ。`,svg:ringF(f)+ringSt(ans)+arrow(shorten([f.x,f.y],[ans.x,ans.y],40,38)),ids:[f.id,ans.id]}};}};
-G.nearStop={lv:1,cat:'{近|ちか}いバス{停|てい}',f(m){
-  const f=pick(m.facs);const arr=m.stops.map(s=>({s,d:dist(f,s)})).sort((a,b)=>a.d-b.d);
-  if(arr.length<3||arr[1].d-arr[0].d<40)return null;const ans=arr[0].s;
-  return {q:`${Fq(f)}に{最|もっと}も{近|ちか}いバス{停|てい}は、どれですか。`,...mkChoice(arr.slice(0,4).map(o=>o.s.name),ans.name),
-    ex:{t:`${Fq(f)}のすぐそばにあるのは、${Sq(ans)}だよ。`,svg:ringF(f)+ringS(ans),ids:[f.id,ans.id]}};}};
-G.nearType={lv:1,cat:'{近|ちか}い{建物|たてもの}',f(m){
-  const tc=countTypes(m);const ts=Object.keys(tc).filter(t=>tc[t]>=2);if(!ts.length)return null;
-  const t=pick(ts);const ins=m.facs.filter(x=>x.t===t);const f=pick(m.facs.filter(x=>x.t!==t));
-  const arr=ins.map(g=>({g,d:dist(f,g)})).sort((a,b)=>a.d-b.d);if(arr[1].d-arr[0].d<60)return null;const ans=arr[0].g;
-  return {q:`${Fq(f)}から{最|もっと}も{近|ちか}い${TYPES[t].w}は、どれですか。`,...mkChoice(ins.map(g=>g.name),ans.name),
-    ex:{t:`${TYPES[t].w}は${ins.length}つあるよ。${Fq(f)}から{近|ちか}いのは${Fq(ans)}だよ。`,svg:ringF(f)+ins.map(ringF).join('')+arrow(shorten([f.x,f.y],[ans.x,ans.y],50,50)),ids:[f.id,ans.id]}};}};
-G.km={lv:1,cat:'mとkm',f(m){
-  const [a,b]=shuffle(m.facs);const d=(3+rnd(23))*100;const ans=d/1000;
-  return {q:`${Fq(a)}から${Fq(b)}までの{道|みち}のりは、${d}mです。${d}mは、{何|なん}kmですか。{小数点|しょうすうてん}を{使|つか}ってこたえてね。`,
-    type:'num',ans,step:0.1,dec:1,unit:'km',min:0,max:99,
-    ex:{t:`1000m＝1kmだよ。${d}mは、${fmt(ans,1)}kmになるよ。`,svg:ringF(a)+ringF(b),ids:[a.id,b.id]}};}};
-G.dir8={lv:2,cat:'{方角|ほうがく}',f(m){
-  const ps=[];m.facs.forEach(f=>m.facs.forEach(g=>{if(f===g)return;const dc=g.c-f.c,dr=g.r-f.r;if(dc===0||dr===0||Math.abs(dc)===Math.abs(dr))ps.push([f,g,dc,dr]);}));
-  const [f,g,dc,dr]=pick(ps);const d=(dr<0?'北':dr>0?'南':'')+(dc>0?'東':dc<0?'西':'');const i=DIR8.indexOf(d);
-  const opts=[d,DIR8[(i+1)%8],DIR8[(i+7)%8],DIR8[(i+4)%8]].map(DR);
-  return {q:`${Fq(f)}から{見|み}て、${Fq(g)}はどの{方角|ほうがく}にありますか。`,...mkChoice(opts,DR(d)),
-    ex:{t:`${Fq(f)}から${Fq(g)}へ{矢印|やじるし}をひいたよ。{地図|ちず}の{上|うえ}が{北|きた}だから、「${DR(d)}」になるよ。`,fig:roseFig(d),
-      svg:ringF(f)+ringF(g)+arrow(shorten([f.x,f.y],[g.x,g.y],45,55)),ids:[f.id,g.id]}};}};
-G.neighbor={lv:2,cat:'となりの{建物|たてもの}',f(m){
-  const cs=[];m.facs.forEach(f=>['N','E','S','W'].forEach(D=>{const g=facAt(m,f.c+DIRV[D][0],f.r+DIRV[D][1]);if(g)cs.push([f,D,g]);}));
-  const [f,D,g]=pick(cs);
-  const others=['N','E','S','W'].filter(x=>x!==D).map(x=>facAt(m,f.c+DIRV[x][0],f.r+DIRV[x][1])).filter(Boolean);
-  if(!others.length)return null;
-  const fill=shuffle(m.facs.filter(x=>x!==f&&x!==g&&!others.includes(x)));const list=[g,...others,...fill].slice(0,4);
-  return {q:`${Fq(f)}の${DN[D]}{側|がわ}に、{道|みち}をはさんでとなりにある{建物|たてもの}は、どれですか。`,...mkChoice(list.map(x=>x.name),g.name),
-    ex:{t:`${DN[D]}は{地図|ちず}の${UPDN[D]}のほうだよ。${Fq(f)}の${UPDN[D]}{側|がわ}には、${Fq(g)}があるよ。`,fig:roseFig({N:'北',E:'東',S:'南',W:'西'}[D]),
-      svg:ringF(f)+ringF(g)+arrow(shorten([f.x,f.y],[g.x,g.y],45,55)),ids:[f.id,g.id]}};}};
-G.count={lv:2,cat:'{数|かず}をかぞえる',f(m){
-  const tc=countTypes(m);const many=Object.keys(tc).filter(t=>tc[t]>=2);
-  const t=(many.length&&Math.random()<0.75)?pick(many):pick(Object.keys(tc));const ins=m.facs.filter(x=>x.t===t);
-  return {q:`この{地図|ちず}に、${TYPES[t].w}は{何|なん}か{所|しょ}ありますか。`,type:'num',ans:ins.length,step:1,dec:0,unit:'か{所|しょ}',min:0,max:20,
-    ex:{t:`${TYPES[t].w}は、${ins.length}か{所|しょ}あるよ。{名前|なまえ}の{最後|さいご}を{見|み}て、1つずつ{数|かぞ}えてね。`,svg:ins.map(ringF).join(''),ids:ins.map(x=>x.id)}};}};
-G.steps={lv:3,cat:'いくつ{先|さき}',f(m){
-  const n=m.stops.length;if(n<5)return null;const L=pick(m.lines);const a=pick(m.stops);const k=2+rnd(n-3);
-  const b=m.stops[L.cw?(a.k+k)%n:(a.k-k+n)%n];
-  const nums=[...new Set([k,k-1,k+1,n-k])].filter(x=>x>0&&x<n);const pickN=[k,...shuffle(nums.filter(x=>x!==k)).slice(0,2)].sort((x,y)=>x-y);
-  const pass=stopsBetween(m,a,b,L.cw);const pts=loopPts(m,a,b,L.cw);
-  return {q:`${Sq(a)}から${lineName(L)}に{乗|の}ります。${Sq(b)}は、いくつ{先|さき}のバス{停|てい}ですか。`,
-    ...mkChoice(pickN.map(x=>x+'つ{先|さき}'),k+'つ{先|さき}',true),
-    ex:{t:`バスは{矢印|やじるし}の{向|む}きに{進|すす}むよ。${Sq(a)}の{次|つぎ}から1、2、…と{数|かぞ}えると、${k}つ{先|さき}だよ。${n-k!==k?`{反対|はんたい}{向|む}きに{数|かぞ}えないように{気|き}をつけてね。`:''}`,
-      svg:ringS(a)+arrow(pts)+pass.map((s,i)=>{const p=badgePos(s);return badge(p[0],p[1],i+1);}).join(''),ids:[a.id,b.id]}};}};
-G.route={lv:3,cat:'{道順|みちじゅん}',f(m){
-  const st=pick(m.stations);const si=st.i;const S=[0,1];const k1=1+rnd(2);
-  const lmSide=pick(['L','R']);const sv=lmSide==='L'?leftOf(S):rightOf(S);
-  const lb=sideBlock(si,k1-1,S,sv);const lm=facAt(m,lb[0],lb[1]);if(!lm)return null;
-  const walk=(T1,n,T2,ds)=>{const h2=T1==='L'?leftOf(S):rightOf(S);const i2=si+h2[0]*n,j2=k1;if(i2<0||i2>4)return null;
-    const h3=T2==='L'?leftOf(h2):rightOf(h2);const i3=i2+h3[0],j3=j2+h3[1];if(i3<0||i3>4||j3<0||j3>3)return null;
-    const b=sideBlock(i2,j2,h3,ds==='L'?leftOf(h3):rightOf(h3));const f=facAt(m,b[0],b[1]);if(!f)return null;
-    return {f,pts:[[st.x,62],gp([si,0]),gp([si,k1]),gp([i2,j2]),[(RX[i2]+RX[i3])/2,(RY[j2]+RY[j3])/2]],turns:[gp([si,k1]),gp([i2,j2])]};};
-  const T1=pick(['L','R']),n=1+rnd(2),T2=pick(['L','R']),ds=pick(['L','R']);
-  const ok=walk(T1,n,T2,ds);if(!ok||ok.f===lm)return null;
-  const fl=x=>x==='L'?'R':'L';
-  const dis=[walk(T1,n,T2,fl(ds)),walk(fl(T1),n,T2,ds),walk(T1,n,fl(T2),ds),walk(T1,n===1?2:1,T2,ds)].filter(Boolean).map(o=>o.f).filter(f=>f!==ok.f&&f!==lm);
-  const ud=[...new Set(dis)];if(ud.length<2)return null;
-  const LR=x=>x==='L'?'{左|ひだり}':'{右|みぎ}';
-  const text=`「${st.name}」を{出|で}て、{南|みなみ}に{向|む}かって{歩|ある}きます。${LR(lmSide)}{側|がわ}に${Fq(lm)}が{見|み}えたら、その{先|さき}の{交差点|こうさてん}を${LR(T1)}に{曲|ま}がります。まっすぐ{歩|ある}いて、${n}つ{目|め}の{交差点|こうさてん}を${LR(T2)}に{曲|ま}がります。すこし{歩|ある}くと、${LR(ds)}{側|がわ}に{目的|もくてき}の{建物|たてもの}があります。`;
-  return {q:`<span style="display:block;border:2px dashed var(--line);border-radius:10px;padding:6px 12px;margin-bottom:6px">${text}</span>{目的|もくてき}の{建物|たてもの}は、どれですか。`,
-    ...mkChoice([ok.f,...ud.slice(0,3)].map(x=>x.name),ok.f.name),
-    ex:{t:`{道順|みちじゅん}を{矢印|やじるし}でかいたよ。{右|みぎ}・{左|ひだり}は、{歩|ある}いている{人|ひと}から{見|み}た{向|む}きだよ。{曲|ま}がるたびに、{進|すす}む{向|む}きが{変|か}わるね。`,
-      svg:ringF(lm)+ringF(ok.f)+arrow(ok.pts)+badge(ok.turns[0][0]+26,ok.turns[0][1]-26,1)+badge(ok.turns[1][0]+26,ok.turns[1][1]-26,2),ids:[lm.id,ok.f.id,st.id]}};}};
-G.lr={lv:4,cat:'{左|ひだり}と{右|みぎ}',f(m){
-  if(!m.two)return null;
-  const L=pick(m.lines),side=pick(['right','left']),xi=side==='right'?3:1;
-  const s0=m.stops.find(s=>s.side===side&&s.row===0),s2=m.stops.find(s=>s.side===side&&s.row===2);if(!s0||!s2)return null;
-  const down=(side==='right')===L.cw;const a=down?s0:s2,b=down?s2:s0;const hd=down?[0,1]:[0,-1];
-  const Wf=facAt(m,xi-1,1),Ef=facAt(m,xi,1);if(!Wf||!Ef)return null;
-  const lv=leftOf(hd);const leftF=lv[0]>0?Ef:Wf,rightF=lv[0]>0?Wf:Ef;const ask=pick(['L','R']);
-  const ans=ask==='L'?leftF:rightF,opp=ask==='L'?rightF:leftF;
-  const xo=xi===1?3:1;const more=[facAt(m,xo-1,1),facAt(m,xo,1)].filter(Boolean);
-  const pts=loopPts(m,a,b,L.cw);const yb=down?RY[1]:RY[2];
-  const lvx=RX[xi]+lv[0]*72,rvx=RX[xi]-lv[0]*72;
-  const svg=arrow(pts)+`<circle cx="${lvx}" cy="${yb}" r="24" fill="#fff" stroke="#E07A1F" stroke-width="3"/>`+svgRuby(lvx,yb+9,'左','ひだり',24,'#B85A0C')
-    +`<circle cx="${rvx}" cy="${yb}" r="24" fill="#fff" stroke="#1E6A84" stroke-width="3"/>`+svgRuby(rvx,yb+9,'右','みぎ',24,'#1E6A84')+ringF(ans);
-  const ldir=vecDir(lv),rdir=vecDir(rightOf(hd));
-  return {q:`${Sq(a)}から${Sq(b)}まで、${lineName(L)}で{行|い}きます。{進行方向|しんこうほうこう}に{向|む}かって${ask==='L'?'{左側|ひだりがわ}':'{右側|みぎがわ}'}に{見|み}えてくる{建物|たてもの}は、どれですか。`,
-    ...mkChoice([ans,opp,...more].map(x=>x.name),ans.name),
-    ex:{t:`バスは${DN[vecDir(hd)]}に{向|む}かって{進|すす}むよ。{進|すす}む{向|む}きを{前|まえ}にすると、{左|ひだり}は${DN[ldir]}{側|がわ}、{右|みぎ}は${DN[rdir]}{側|がわ}になるよ。`,fig:lrFig(vecDir(hd)),svg,ids:[a.id,b.id,ans.id]}};}};
-G.compare={lv:4,cat:'かかる{時間|じかん}',f(m){
-  if(!m.two)return null;const n=m.stops.length;
-  const [a,b]=shuffle(m.stops);const cwT=minsBetween(m,a,b,true),ccT=minsBetween(m,a,b,false);
-  const Lw=pick(m.lines),Ln=m.lines.find(x=>x!==Lw),w=3+rnd(4);
-  const tOf=L=>(L.cw?cwT.t:ccT.t);
-  const tw=tOf(Lw)+w,tn=tOf(Ln);if(tw===tn)return null;if(Math.abs(tOf(Lw)-tn)>w+4)return null;
-  const win=tw<tn?Lw:Ln,lose=win===Lw?Ln:Lw,d=Math.abs(tw-tn);
-  const t0w=tOf(Lw),t0n=tOf(Ln);
-  const opt=(L,dd)=>`${L.name}のほうが、${dd}分{早|はや}い`;
-  const list=[opt(win,d)];
-  if(t0w!==t0n){const w0=t0w<t0n?Lw:Ln;list.push(opt(w0,Math.abs(t0w-t0n)));list.push(opt(win,Math.abs(t0w-t0n)));}
-  list.push(opt(lose,d));list.push(opt(win,d+1));list.push(opt(lose,d+1));
-  const u=[...new Set(list)].slice(0,4);
-  const px=L=>L.cw?cwT:ccT;
-  const draw=arrow(loopPts(m,a,b,Ln.cw),'harrow2')+arrow(loopPts(m,a,b,Lw.cw))+ringS(a)+ringS(b);
-  return {q:`${Sq(a)}から${Sq(b)}まで、バスで{行|い}きます。${Ln.name}は、すぐに{来|き}ます。${Lw.name}は、{来|く}るまで${w}分{待|ま}ちます。どちらに{乗|の}るほうが、{何|なん}分{早|はや}く{着|つ}きますか。`,
-    ...mkChoice(u,opt(win,d)),
-    ex:{t:`○の{中|なか}の{数字|すうじ}を{足|た}すよ。<br>${Ln.name}：${px(Ln).ids.map(i=>m.mins[i]).join('＋')}＝${tn}分<br>${Lw.name}：{待|ま}つ${w}分＋${px(Lw).ids.map(i=>m.mins[i]).join('＋')}＝${tw}分<br>だから、${win.name}のほうが${d}分{早|はや}いよ。{待|ま}つ{時間|じかん}も{足|た}すのをわすれないでね。`,
-      svg:draw,ids:[a.id,b.id],mins:[...cwT.ids,...ccT.ids]}};}};
-G.statement={lv:4,cat:'{正|ただ}しい{文|ぶん}',f(m){
-  const tc=countTypes(m);
-  const B={
-    count(tr){const t=pick(Object.keys(tc));const n=tc[t];const k=tr?n:(n===1?2:n+pick([-1,1]));
-      return {h:`${TYPES[t].w}は、${k}か{所|しょ}ある。`,why:`${TYPES[t].w}は${n}か{所|しょ}だよ。`};},
-    dir(tr){const ps=[];m.facs.forEach(f=>m.facs.forEach(g=>{if(f===g)return;const dc=g.c-f.c,dr=g.r-f.r;if(dc===0||dr===0||Math.abs(dc)===Math.abs(dr))ps.push([f,g,dc,dr]);}));
-      const [f,g,dc,dr]=pick(ps);const d=(dr<0?'北':dr>0?'南':'')+(dc>0?'東':dc<0?'西':'');const i=DIR8.indexOf(d);const s=tr?d:DIR8[(i+pick([2,4,6]))%8];
-      return {h:`${Fq(g)}は、${Fq(f)}から{見|み}て${DR(s)}にある。`,why:`${Fq(f)}から{見|み}ると${DR(d)}だよ。`};},
-    stop(tr){for(let z=0;z<20;z++){const f=pick(m.facs);const arr=m.stops.map(s=>({s,d:dist(f,s)})).sort((a,b)=>a.d-b.d);if(arr[1].d-arr[0].d<40)continue;
-      const s=tr?arr[0].s:arr[1].s;return {h:`${Fq(f)}に{最|もっと}も{近|ちか}いバス{停|てい}は、${Sq(s)}である。`,why:`いちばん{近|ちか}いのは${Sq(arr[0].s)}だよ。`};}return null;},
-    rail(tr){return {h:`{鉄道|てつどう}は、${tr?'{東西|とうざい}':'{南北|なんぼく}'}の{方向|ほうこう}に{走|はし}っている。`,why:`{鉄道|てつどう}は{地図|ちず}の{上|うえ}を{横|よこ}に{走|はし}っているから、{東西|とうざい}だよ。`};}
-  };
-  const keys=shuffle(Object.keys(B)).slice(0,3);const ti=rnd(3);
-  const ss=keys.map((k,i)=>B[k](i===ti));if(ss.some(x=>!x))return null;
-  if(new Set(ss.map(x=>x.h)).size<3)return null;
-  const corr=ss[ti].h;
-  return {q:`この{地図|ちず}から{読|よ}み{取|と}れることとして、{正|ただ}しいものはどれですか。`,...mkChoice(ss.map(x=>x.h),corr,true),
-    ex:{t:'<ul>'+ss.map((x,i)=>`<li>${i===ti?'○':'×'} ${x.why}</li>`).join('')+'</ul>',svg:'',ids:[]}};}};
-
-const POOL={1:['nearStation','nearStop','nearType','km'],2:['dir8','neighbor','count'],3:['steps','route'],4:['lr','compare','statement']};
-const SEQ={1:[1,1,1],2:[1,2,2],3:[1,2,3,3],4:[2,3,4,4]};
-function makeSet(level){
-  for(let t=0;t<60;t++){
-    const m=genMap(level===4);if(!m)continue;const used=new Set(),out=[];let fail=false;
-    for(const lv of SEQ[level]){
-      let q=null;const order=shuffle(POOL[lv].filter(k=>!used.has(k))).concat(shuffle(POOL[lv]));
-      for(const k of order){for(let z=0;z<12&&!q;z++){q=G[k].f(m);}if(q){q.cat=G[k].cat;q.lv=lv;q.key=k;used.add(k);break;}}
-      if(!q){fail=true;break;}out.push(q);
+function tone(seq,type,vol){
+  if(!settings.sound||!actx)return;
+  try{
+    let t=actx.currentTime+0.02;
+    for(const [f,d] of seq){
+      const o=actx.createOscillator(),g=actx.createGain();
+      o.type=type;o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+      o.connect(g);g.connect(actx.destination);o.start(t);o.stop(t+d+0.02);t+=d*0.85;
     }
-    if(!fail)return {m,qs:out};
+  }catch(e){}
+}
+const sndOK=()=>tone([[784,.16],[1175,.3]],'sine',.22);
+const sndNG=()=>tone([[392,.28]],'triangle',.12);
+
+/* ====================== 地図の定数 ====================== */
+const MW=1000, MH=840;
+const GX=[60,280,500,720,940], GY=[140,298,456,614,772];
+const RW=26, RAILY=80, RAILX=978, ROAD='#D2D2D2';
+const XY=ij=>[GX[ij[0]],GY[ij[1]]];
+
+const PREFIX=['さくら','もみじ','あおば','みどり','つばき','すみれ','かえで','ひかり','あさひ','わかば','いずみ','はるか',
+  'ひまわり','なのはな','あじさい','たんぽぽ','やまぶき','れんげ','ききょう','ほたる','かもめ','つばめ','ひばり','すずらん',
+  'あけぼの','しらかば','こまち','やよい','みなと','ゆりの','こだま','のぞみ'];
+const TYPES={
+  post:{n:'{郵便局|ゆうびんきょく}',sym:'post'},
+  eschool:{n:'{小学校|しょうがっこう}',sym:'school'},
+  jschool:{n:'{中学校|ちゅうがっこう}',sym:'school'},
+  hschool:{n:'{高校|こうこう}',sym:'hschool'},
+  hospital:{n:'{病院|びょういん}',sym:'hospital'},
+  police:{n:'{警察署|けいさつしょ}',sym:'police'},
+  fire:{n:'{消防署|しょうぼうしょ}',sym:'fire'},
+  cityhall:{n:'{市役所|しやくしょ}',sym:'cityhall',solo:true},
+  library:{n:'{図書館|としょかん}',sym:'library'},
+  shrine:{n:'{神社|じんじゃ}',sym:'shrine'},
+  park:{n:'{公園|こうえん}',sym:null},
+  bank:{n:'{銀行|ぎんこう}',sym:'dot'},
+  super:{n:'スーパー',sym:'dot'},
+  shokudo:{n:'{食堂|しょくどう}',sym:'dot'},
+  bakery:{n:'パン{屋|や}',sym:'dot'},
+  museum:{n:'{美術館|びじゅつかん}',sym:'dot'},
+  cinema:{n:'{映画館|えいがかん}',sym:'dot'},
+  kinder:{n:'{幼稚園|ようちえん}',sym:'dot'}
+};
+const SYMS={post:'{郵便局|ゆうびんきょく}',school:'{学校|がっこう}',hschool:'{高校|こうこう}',hospital:'{病院|びょういん}',
+  police:'{警察署|けいさつしょ}',fire:'{消防署|しょうぼうしょ}',cityhall:'{市役所|しやくしょ}',library:'{図書館|としょかん}',shrine:'{神社|じんじゃ}'};
+const SYMORDER=['cityhall','post','school','hschool','hospital','police','fire','library','shrine'];
+const DIR8=['{東|ひがし}','{北東|ほくとう}','{北|きた}','{北西|ほくせい}','{西|にし}','{南西|なんせい}','{南|みなみ}','{南東|なんとう}'];
+const D4={E:{n:'{東|ひがし}',v:[1,0]},W:{n:'{西|にし}',v:[-1,0]},S:{n:'{南|みなみ}',v:[0,1]},N:{n:'{北|きた}',v:[0,-1]}};
+const d4name=(dx,dy)=>dx>0?D4.E.n:dx<0?D4.W.n:dy>0?D4.S.n:D4.N.n;
+
+/* 文字幅の見積もり（ルビも考える） */
+function cw(s){let w=0;for(const ch of s)w+=/[\x20-\x7e]/.test(ch)?0.58:1;return w;}
+function textW(m,fs){
+  let w=0;const re=/\{([^|{}]+)\|([^{}]+)\}|([^{])/g;let mm;
+  while((mm=re.exec(m))){if(mm[1])w+=Math.max(cw(mm[1]),cw(mm[2])*0.5);else w+=cw(mm[3]);}
+  return w*fs;
+}
+const over=(a,b)=>!(a.x+a.w<=b.x||b.x+b.w<=a.x||a.y+a.h<=b.y||b.y+b.h<=a.y);
+const overArea=(a,b)=>Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+
+/* ====================== 地図記号 ====================== */
+function sym(k,x,y,sc,col){
+  sc=sc||1;col=col||'#222';
+  const g=inner=>`<g transform="translate(${x},${y}) scale(${sc})" fill="none" stroke="${col}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">${inner}</g>`;
+  const bg='<circle r="13" fill="#fff" stroke="none"/>';
+  switch(k){
+    case 'post':return g('<circle r="12" fill="#fff"/><path d="M-6.5,-6H6.5M-6.5,-1.5H6.5M0,-1.5V8"/>');
+    case 'school':return g(`<rect x="-13" y="-13" width="26" height="26" fill="#fff" stroke="none"/><text x="0" y="8.5" text-anchor="middle" font-size="24" font-weight="700" fill="${col}" stroke="none" font-family="BIZ UDPGothic,sans-serif">文</text>`);
+    case 'hschool':return g(`<circle r="13" fill="#fff"/><text x="0" y="6.2" text-anchor="middle" font-size="17" font-weight="700" fill="${col}" stroke="none" font-family="BIZ UDPGothic,sans-serif">文</text>`);
+    case 'hospital':return g('<path d="M-11,-11H11V1Q11,10 0,12.5Q-11,10 -11,1Z" fill="#fff"/><path d="M0,-7V6M-6.5,-0.5H6.5"/>');
+    case 'police':return g('<circle r="12" fill="#fff"/><path d="M-7,-7L7,7M7,-7L-7,7"/>');
+    case 'fire':return g(bg+'<path d="M0,12V0M-10,-11Q-10,0 0,0Q10,0 10,-11"/>');
+    case 'cityhall':return g('<circle r="12" fill="#fff"/><circle r="5.5"/>');
+    case 'library':return g(bg+'<path d="M0,-5Q-6,-10 -12,-8V8Q-6,6 0,10Q6,6 12,8V-8Q6,-10 0,-5ZM0,-5V10" fill="#fff"/>');
+    case 'shrine':return g(bg+'<path d="M-12,-9Q0,-12 12,-9M-9,-3.5H9M-6,-9V11M6,-9V11"/>');
+    case 'dot':return `<circle cx="${x}" cy="${y}" r="${6.5*sc}" fill="${col}"/>`;
+  }
+  return '';
+}
+function busIcon(x,y,col){
+  col=col||'#222';
+  return `<g transform="translate(${x},${y})"><rect x="-13" y="-15" width="26" height="30" rx="5" fill="#fff" stroke="${col}" stroke-width="2.4"/>
+  <rect x="-8.5" y="-10" width="17" height="15" rx="2.5" fill="${col}"/><rect x="-6.5" y="-8" width="13" height="5.5" fill="#fff"/>
+  <circle cx="-4.5" cy="8.5" r="2.3" fill="${col}"/><circle cx="4.5" cy="8.5" r="2.3" fill="${col}"/></g>`;
+}
+const symMini=(k,size)=>`<svg width="${size}" height="${size}" viewBox="-16 -16 32 32" aria-hidden="true">${sym(k,0,0,1)}</svg>`;
+
+/* ====================== 地図をつくる ====================== */
+let mapUid=0;
+function genMap(){
+  for(let t=0;t<400;t++){const m=tryMap();if(m)return m;}
+  throw new Error('map');
+}
+function tryMap(){
+  const M={uid:++mapUid,facs:[],stops:[],boxes:[],byBlock:{}};
+  const pre=shuffle(PREFIX);let pi=0;const np=()=>pre[pi++];
+
+  /* バスの通る道（1方向に回る） */
+  let a=pick([0,1]),b=pick([3,4]);
+  if(a===0&&b===4){if(Math.random()<.5)a=1;else b=3;}
+  const notch=Math.random()<.55?pick([1,2]):0;
+  const V=[[a,0],[4,0],[4,b]];
+  if(notch&&a+1<4&&b-notch>0)V.push([a+1,b],[a+1,b-notch],[a,b-notch]);else V.push([a,b]);
+  let pts=[];
+  for(let k=0;k<V.length;k++){
+    const p=V[k],q=V[(k+1)%V.length];const di=Math.sign(q[0]-p[0]),dj=Math.sign(q[1]-p[1]);
+    const c=[p[0],p[1]];while(c[0]!==q[0]||c[1]!==q[1]){pts.push(c.slice());c[0]+=di;c[1]+=dj;}
+  }
+  if(Math.random()<.5)pts.reverse();
+  M.pts=pts;const NP=pts.length;
+
+  /* 施設の種類をブロックにわりあてる */
+  const blocks=[];for(let r=0;r<4;r++)for(let c=0;c<4;c++)blocks.push([c,r]);
+  const sb=shuffle(blocks);
+  const types=[];
+  for(let i=0,n=2+rnd(2);i<n;i++)types.push('post');
+  types.push('eschool');if(Math.random()<.5)types.push('eschool');types.push('jschool');
+  types.push('hospital');if(Math.random()<.35)types.push('hospital');
+  types.push('police','fire','cityhall','library');
+  if(Math.random()<.5)types.push('shrine');
+  if(Math.random()<.45)types.push('hschool');
+  const dots=shuffle(['bank','super','shokudo','bakery','museum','cinema','kinder']);let di=0;
+  while(types.length<15)types.push(dots[di++]);
+  const tps=shuffle(types);
+  sb.forEach(([c,r],k)=>{
+    const type=k===0?'park':tps[k-1];
+    const f={id:'f'+k,type,c,r,name:TYPES[type].solo?TYPES[type].n:np()+TYPES[type].n};
+    M.facs.push(f);M.byBlock[c+','+r]=f;
+  });
+
+  /* 駅 */
+  const segIdx=(p,q)=>{for(let k=0;k<NP;k++){const u=pts[k],v=pts[(k+1)%NP];
+    if((u[0]===p[0]&&u[1]===p[1]&&v[0]===q[0]&&v[1]===q[1])||(u[0]===q[0]&&u[1]===q[1]&&v[0]===p[0]&&v[1]===p[1]))return k;}return -1;};
+  const iA=a+rnd(4-a), jB=rnd(b);
+  const segA=segIdx([iA,0],[iA+1,0]), segB=segIdx([4,jB],[4,jB+1]);
+  if(segA<0||segB<0)return null;
+  const stA={id:'A',pre:np()},stB={id:'B',pre:np()};
+  stA.name=stA.pre+'{駅|えき}';stB.name=stB.pre+'{駅|えき}';
+
+  /* バス停の場所 */
+  const want=NP>=13?7:6;
+  const segs=[segA,segB];
+  for(const k of shuffle([...Array(NP).keys()])){if(segs.length>=want)break;if(!segs.includes(k))segs.push(k);}
+  /* 名前 */
+  const usedNear=new Set();
+  const stopName=k=>{
+    if(k===segA)return stA.pre+'{駅前|えきまえ}';
+    if(k===segB)return stB.pre+'{駅前|えきまえ}';
+    const adj=segBlocks(pts[k],pts[(k+1)%NP]).map(([c,r])=>M.byBlock[c+','+r]).filter(Boolean);
+    for(const f of shuffle(adj)){
+      if(usedNear.has(f.type)||Math.random()<.35)continue;
+      if(f.type==='cityhall'){usedNear.add(f.type);return '{市役所前|しやくしょまえ}';}
+      if(f.type==='library'){usedNear.add(f.type);return '{図書館前|としょかんまえ}';}
+      if(f.type==='park'){usedNear.add(f.type);return '{公園入口|こうえんいりぐち}';}
+      if(f.type==='hospital'){usedNear.add(f.type);return f.name+'{前|まえ}';}
+    }
+    return np()+(1+rnd(4))+'{丁目|ちょうめ}';
+  };
+  M.boxes.push({x:0,y:0,w:62,h:66});/* 方位記号 */
+  for(const x of GX)M.boxes.push({x:x-RW/2,y:GY[0]-RW/2,w:RW,h:GY[4]-GY[0]+RW});
+  for(const y of GY)M.boxes.push({x:GX[0]-RW/2,y:y-RW/2,w:GX[4]-GX[0]+RW,h:RW});
+  let sid=0;
+  for(const k of segs){
+    const name=stopName(k);
+    const cands=shuffle(stopCands(pts[k],pts[(k+1)%NP],name));
+    let ok=null;
+    for(const cd of cands){
+      const ib={x:cd.ix-15,y:cd.iy-17,w:30,h:34};
+      if(M.boxes.some(bx=>over(bx,ib)||over(bx,cd.lab)))continue;
+      ok=cd;ok.ib=ib;break;
+    }
+    if(!ok){if(k===segA||k===segB)return null;continue;}
+    const s={id:'s'+(sid++),name,seg:k,...ok};
+    M.boxes.push(ok.ib,ok.lab);
+    if(k===segA)stA.stop=s;if(k===segB)stB.stop=s;
+    M.stops.push(s);
+  }
+  if(M.stops.length<6)return null;
+  /* 駅の箱 */
+  {
+    const w=textW(stA.name,20)+26;stA.cx=stA.stop.rx;stA.cy=RAILY;
+    stA.box={x:stA.cx-w/2,y:RAILY-22,w,h:44};
+    const hb=(cw(stB.pre)+1)*24+34;stB.cx=RAILX;stB.cy=stB.stop.ry;
+    stB.box={x:RAILX-23,y:stB.cy-hb/2,w:46,h:hb};
+    if(stB.box.y<RAILY+20||stB.box.y+stB.box.h>MH-40)return null;
+    if(M.boxes.some(bx=>over(bx,stA.box)))return null;
+    M.boxes.push(stA.box,stB.box);
+  }
+  M.stations=[stA,stB];
+
+  /* 施設の文字の場所 */
+  for(const f of shuffle(M.facs)){
+    const br=blockRect(f.c,f.r);
+    const fs=19, isPark=f.type==='park';
+    const w=(isPark?8:31)+textW(f.name,fs)*1.04+4, h=36;
+    if(w>br.x1-br.x0)return null;
+    if(isPark){
+      /* 公園：ブロック全体を緑に。名前は上か下 */
+      const cands=[];for(const x of [br.x0+4,(br.x0+br.x1-w)/2,br.x1-w-4])for(const y of [br.y0+4,br.y1-h-4])cands.push([x,y]);
+      let best=null,bs=1e9;
+      for(const [x,y] of shuffle(cands)){const bx={x,y,w,h};const sc=M.boxes.reduce((s,o)=>s+overArea(o,bx),0);if(sc<bs){bs=sc;best=bx;}}
+      if(bs>0)return null;
+      f.box=best;f.sx=(br.x0+br.x1)/2;f.sy=(br.y0+br.y1)/2;M.boxes.push(best);continue;
+    }
+    const xs=[br.x0,(br.x0+br.x1-w)/2,br.x1-w], ys=[br.y0,(br.y0+br.y1-h)/2,br.y1-h];
+    const cands=[];for(const x of xs)for(const y of ys)cands.push({x,y,w,h});
+    let best=null,bs=1e9;
+    for(const bx of shuffle(cands)){const sc=M.boxes.reduce((s,o)=>s+overArea(o,bx),0);if(sc<bs){bs=sc;best=bx;}if(sc===0)break;}
+    if(bs>0)return null;
+    f.box=best;f.sx=best.x+14;f.sy=best.y+h-14;M.boxes.push(best);
+  }
+
+  /* バス停を進む順にならべる */
+  for(const s of M.stops){
+    const p=XY(pts[s.seg]),q=XY(pts[(s.seg+1)%NP]);
+    const L=dist(p[0],p[1],q[0],q[1]);s.u=s.seg+dist(p[0],p[1],s.rx,s.ry)/L;
+  }
+  M.stops.sort((x,y)=>x.u-y.u);
+  M.stops.forEach((s,i)=>s.idx=i);
+  M.iA=stA.stop.idx;M.iB=stB.stop.idx;
+  M.segMin=M.stops.map(()=>2+rnd(4));
+  return M;
+}
+function blockRect(c,r){return{x0:GX[c]+RW/2+4,y0:GY[r]+RW/2+4,x1:GX[c+1]-RW/2-4,y1:GY[r+1]-RW/2-4};}
+function segBlocks(p,q){
+  const out=[];
+  if(p[1]===q[1]){const i=Math.min(p[0],q[0]),j=p[1];if(j>0)out.push([i,j-1]);if(j<4)out.push([i,j]);}
+  else{const j=Math.min(p[1],q[1]),i=p[0];if(i>0)out.push([i-1,j]);if(i<4)out.push([i,j]);}
+  return out;
+}
+function stopCands(p,q,name){
+  const lw=textW(name,20)*1.07+8, lh=36, res=[];
+  if(p[1]===q[1]){
+    const j=p[1],i=Math.min(p[0],q[0]);const sides=[];if(j>0)sides.push(-1);if(j<4)sides.push(1);
+    for(const sd of sides)for(const end of [0,1]){
+      const ix=end===0?GX[i]+32:GX[i+1]-32, iy=GY[j]+sd*33;
+      const lx=end===0?ix+17:ix-17-lw;
+      res.push({ix,iy,rx:ix,ry:GY[j],al:end===0?'l':'r',lab:{x:lx,y:iy-lh/2,w:lw,h:lh}});
+    }
+  }else{
+    const i=p[0],j=Math.min(p[1],q[1]);const sides=[];if(i>0)sides.push(-1);if(i<4)sides.push(1);
+    for(const sd of sides)for(const end of [0,1]){
+      const ix=GX[i]+sd*32, iy=end===0?GY[j]+34:GY[j+1]-34;
+      const lx=sd>0?ix+17:ix-17-lw;
+      res.push({ix,iy,rx:GX[i],ry:iy,al:sd>0?'l':'r',lab:{x:lx,y:iy-lh/2,w:lw,h:lh}});
+    }
+  }
+  return res;
+}
+/* バスの道にそった点 */
+function loopPt(M,u){const n=M.pts.length;u=((u%n)+n)%n;const k=Math.floor(u),t=u-k;const a=XY(M.pts[k]),b=XY(M.pts[(k+1)%n]);return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];}
+function loopPath(M,u1,u2){const n=M.pts.length;if(u2<=u1)u2+=n;const out=[loopPt(M,u1)];for(let k=Math.floor(u1)+1;k<u2;k++)out.push(loopPt(M,k));out.push(loopPt(M,u2));return out;}
+const fwd=(M,i,j)=>((j-i)%M.stops.length+M.stops.length)%M.stops.length;
+const railPath=M=>{const A=M.stations[0],B=M.stations[1];return[[A.cx,RAILY],[RAILX,RAILY],[RAILX,B.cy]];};
+function polyMid(pts){
+  let L=0;for(let i=1;i<pts.length;i++)L+=dist(...pts[i-1],...pts[i]);
+  let h=L/2;for(let i=1;i<pts.length;i++){const d=dist(...pts[i-1],...pts[i]);if(h<=d){const t=h/d;return[pts[i-1][0]+(pts[i][0]-pts[i-1][0])*t,pts[i-1][1]+(pts[i][1]-pts[i-1][1])*t];}h-=d;}
+  return pts[pts.length-1];
+}
+
+/* ====================== 地図をかく ====================== */
+function baseSVG(M){
+  let s=`<svg class="base" width="${MW}" height="${MH}" viewBox="0 0 ${MW} ${MH}" aria-hidden="true">`;
+  s+=`<rect width="${MW}" height="${MH}" fill="#fff"/>`;
+  /* 公園 */
+  const pk=M.facs.find(f=>f.type==='park');
+  if(pk){const br=blockRect(pk.c,pk.r);
+    s+=`<rect x="${br.x0-2}" y="${br.y0-2}" width="${br.x1-br.x0+4}" height="${br.y1-br.y0+4}" rx="10" fill="#E2F0DC" stroke="#8DB585" stroke-width="2"/>`;
+    const cx=(br.x0+br.x1)/2+(pk.box.y<(br.y0+br.y1)/2?0:0), cy=pk.box.y<(br.y0+br.y1)/2?br.y1-38:br.y0+38;
+    s+=`<ellipse cx="${cx-30}" cy="${cy}" rx="40" ry="20" fill="#C9E2F2" stroke="#7FA9C4" stroke-width="2"/>`;
+    for(const [tx,ty] of [[cx+40,cy-8],[cx+64,cy+6],[cx+30,cy+14]])s+=`<circle cx="${tx}" cy="${ty}" r="9" fill="#9CCB8E" stroke="#5E8F55" stroke-width="1.5"/>`;
+  }
+  /* 道 */
+  const r0=GY[0]-RW/2,r1=GY[4]+RW/2,c0=GX[0]-RW/2,c1=GX[4]+RW/2;
+  for(const x of GX)s+=`<rect x="${x-RW/2}" y="${r0}" width="${RW}" height="${r1-r0}" fill="${ROAD}"/>`;
+  for(const y of GY)s+=`<rect x="${c0}" y="${y-RW/2}" width="${c1-c0}" height="${RW}" fill="${ROAD}"/>`;
+  const A=M.stations[0],B=M.stations[1];
+  s+=`<rect x="${A.cx-18}" y="${RAILY}" width="36" height="${GY[0]-RAILY}" fill="${ROAD}"/>`;
+  s+=`<rect x="${GX[4]}" y="${B.cy-18}" width="${RAILX-GX[4]}" height="36" fill="${ROAD}"/>`;
+  /* 鉄道 */
+  const rd=`M0,${RAILY}H${RAILX}V${MH-24}`;
+  s+=`<path d="${rd}" fill="none" stroke="#222" stroke-width="13"/><path d="${rd}" fill="none" stroke="#fff" stroke-width="7.5" stroke-dasharray="22 22"/>`;
+  /* バスの道 */
+  const lp=M.pts.map(XY);
+  s+=`<g class="bus"><path d="M${lp.map(p=>p.join(',')).join('L')}Z" fill="none" stroke="#333" stroke-width="6" stroke-dasharray="0.1 12" stroke-linecap="round"/>`;
+  for(let k=0;k<lp.length;k++){
+    const p=lp[k],q=lp[(k+1)%lp.length];const d=[Math.sign(q[0]-p[0]),Math.sign(q[1]-p[1])];
+    s+=arrowHead((p[0]+q[0])/2+d[0]*10,(p[1]+q[1])/2+d[1]*10,d[0],d[1],11,'#333');
+  }
+  s+='</g>';
+  /* バス停 */
+  for(const st of M.stops)s+=busIcon(st.ix,st.iy);
+  /* 施設の記号 */
+  for(const f of M.facs){if(f.type!=='park')s+=sym(TYPES[f.type].sym,f.sx,f.sy);}
+  /* 方位記号 */
+  s+=`<g transform="translate(31,36)"><text x="0" y="-18" font-size="17" font-weight="700" text-anchor="middle" fill="#222" font-family="sans-serif">N</text>
+    <path d="M0,-14V26" stroke="#222" stroke-width="2.6"/><path d="M0,-14L-9,8L0,3Z" fill="#222"/></g>`;
+  /* 縮尺 */
+  const sy=MH-26;
+  s+=`<g stroke="#222" stroke-width="2"><path d="M${GX[0]},${sy}H${GX[0]+300}"/>`;
+  for(let i=0;i<=5;i++)s+=`<path d="M${GX[0]+i*60},${sy}V${sy-(i%5===0?12:7)}"/>`;
+  s+=`</g><text x="${GX[0]}" y="${sy-16}" font-size="16" text-anchor="middle" fill="#222" font-family="sans-serif">0</text>
+    <text x="${GX[0]+300}" y="${sy-16}" font-size="16" text-anchor="middle" fill="#222" font-family="sans-serif">500m</text>`;
+  s+='</svg>';
+  return s;
+}
+function arrowHead(x,y,dx,dy,sz,col){
+  const nx=-dy,ny=dx;
+  return `<path d="M${x+dx*sz},${y+dy*sz}L${x-dx*sz*.7+nx*sz*.75},${y-dy*sz*.7+ny*sz*.75}L${x-dx*sz*.7-nx*sz*.75},${y-dy*sz*.7-ny*sz*.75}Z" fill="${col}"/>`;
+}
+function labelsHTML(M){
+  let h='';
+  for(const f of M.facs){const b=f.box,off=f.type==='park'?4:31;
+    h+=`<div class="lab fac${f.type==='park'?' park':''}" data-id="${f.id}" style="left:${b.x+off}px;top:${b.y}px;height:${b.h}px">${R(f.name)}</div>`;}
+  for(const s of M.stops){const b=s.lab;
+    const pos=s.al==='l'?`left:${b.x}px`:`right:${MW-(b.x+b.w)}px`;
+    h+=`<div class="lab stop${s.al==='r'?' right':''}" data-id="${s.id}" style="${pos};top:${b.y}px;height:${b.h}px">${R(s.name)}</div>`;}
+  for(const st of M.stations){const b=st.box;
+    h+=`<div class="station${st.id==='B'?' v':''}" data-id="${st.id}" style="left:${b.x+b.w/2}px;top:${b.y+b.h/2}px">${st.id==='B'?vertName(st.name):R(st.name)}</div>`;}
+  return h;
+}
+function vertName(m){
+  let h='';const re=/\{([^|{}]+)\|([^{}]+)\}|([^{])/g;let mm;
+  while((mm=re.exec(m))){
+    if(mm[1]){const ch=[...mm[1]];ch.forEach((c,i)=>{h+=`<span class="vc">${c}${i===0?`<span class="vr">${mm[2]}</span>`:''}</span>`;});}
+    else h+=`<span class="vc">${mm[3]}</span>`;
+  }
+  return h;
+}
+function legendHTML(M){
+  const have=new Set(M.facs.map(f=>TYPES[f.type].sym));
+  let h='';
+  for(const k of SYMORDER)if(have.has(k))h+=`<span class="li" data-k="${k}">${symMini(k,26)}${R(SYMS[k])}</span>`;
+  h+=`<span class="li" data-k="dot">${symMini('dot',20)}そのほかの{建物|たてもの}</span>`.replace(/\{([^|{}]+)\|([^{}]+)\}/g,'<ruby>$1<rt>$2</rt></ruby>');
+  h+=`<span class="li" data-k="bus"><svg width="30" height="34" viewBox="-16 -17 32 34">${busIcon(0,0)}</svg>バス{停|てい}</span>`;
+  h+=`<span class="li" data-k="busline"><svg width="54" height="20" viewBox="0 0 54 20"><path d="M4,10H38" stroke="#333" stroke-width="5" stroke-dasharray="0.1 10" stroke-linecap="round"/>${arrowHead(44,10,1,0,8,'#333')}</svg>バスが{通|とお}る{道|みち}と{向|む}き</span>`;
+  h+=`<span class="li" data-k="rail"><svg width="54" height="16" viewBox="0 0 54 16"><path d="M2,8H52" stroke="#222" stroke-width="10"/><path d="M2,8H52" stroke="#fff" stroke-width="5.5" stroke-dasharray="9 9"/></svg>{鉄道|てつどう}</span>`;
+  h+=`<span class="li" data-k="n">N＝{北|きた}</span>`;
+  return R(h);
+}
+
+/* ====================== 重ねがき（ヒント・解説） ====================== */
+const HL='#E8770F', HL2='#2465A0';
+const ring=(x,y,r,col,w)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${col||HL}" stroke-width="${w||5}"/>`;
+const polyl=(pts,col,w,dash,cap)=>`<path d="M${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="${cap||'round'}"${dash?` stroke-dasharray="${dash}"`:''}/>`;
+function pathArrow(pts,col,w,dash,cap){
+  const n=pts.length,p=pts[n-2],q=pts[n-1];const L=dist(...p,...q)||1;const dx=(q[0]-p[0])/L,dy=(q[1]-p[1])/L;
+  const pp=pts.slice();pp[n-1]=[q[0]-dx*w*1.4,q[1]-dy*w*1.4];
+  return polyl(pp,col,w,dash,cap)+arrowHead(q[0]-dx*w*1.2,q[1]-dy*w*1.2,dx,dy,w*2.1,col);
+}
+function lineArrow(x1,y1,x2,y2,col,w){return pathArrow([[x1,y1],[x2,y2]],col||HL,w||6);}
+const otag=(x,y,m,cls)=>`<div class="otag ${cls||''}" style="left:${Math.max(30,Math.min(MW-30,x))}px;top:${Math.max(20,Math.min(MH-20,y))}px">${R(m)}</div>`;
+const numCircle=(x,y,n,col)=>`<circle cx="${x}" cy="${y}" r="16" fill="${col||HL}"/><text x="${x}" y="${y+7}" font-size="20" font-weight="700" fill="#fff" text-anchor="middle" font-family="sans-serif">${n}</text>`;
+const timeCircle=(x,y,n,col)=>`<circle cx="${x}" cy="${y}" r="16" fill="#fff" stroke="${col||'#222'}" stroke-width="2.6"/><text x="${x}" y="${y+7}" font-size="20" font-weight="700" fill="${col||'#222'}" text-anchor="middle" font-family="sans-serif">${n}</text>`;
+const facPos=f=>[f.sx,f.sy];
+const stopPos=s=>[s.ix,s.iy];
+const staPos=st=>[st.box.x+st.box.w/2,st.box.y+st.box.h/2];
+function busSub(M,i,j){return loopPath(M,M.stops[i].u,M.stops[j].u);}
+function timesOverlay(M){
+  let s='';const n=M.stops.length;
+  for(let i=0;i<n;i++){const m=polyMid(busSub(M,i,(i+1)%n));s+=timeCircle(m[0],m[1],M.segMin[i]);}
+  const rm=polyMid(railPath(M));s+=timeCircle(rm[0]-(rm[0]>=RAILX-1?0:0),rm[1],M.trainMin);
+  return s;
+}
+
+/* ====================== 問題をつくる ====================== */
+const facN=f=>Q(f.name);
+const stopN=s=>Q(s.name)+'バス{停|てい}';
+const allSymTypes=M=>{const s=new Set();M.facs.forEach(f=>{const k=TYPES[f.type].sym;if(k&&k!=='dot')s.add(k);});return[...s];};
+const facsOfSym=(M,k)=>M.facs.filter(f=>TYPES[f.type].sym===k);
+const notPark=M=>M.facs.filter(f=>f.type!=='park');
+
+function mkChoiceQ(o){return Object.assign({input:'choice'},o);}
+
+const GEN={
+  /* --- レベル1 --- */
+  symbolMeaning(M){
+    const k=pick(allSymTypes(M));const others=sample(Object.keys(SYMS).filter(x=>x!==k),3);
+    const ch=shuffle([k,...others]);
+    return mkChoiceQ({kind:'symbol',text:'この{地図記号|ちずきごう}は、{何|なに}をあらわしている？',
+      extra:`<svg width="90" height="90" viewBox="-18 -18 36 36" aria-hidden="true"><rect x="-17" y="-17" width="34" height="34" rx="6" fill="#fff" stroke="#C9D3CE"/>${sym(k,0,0,1)}</svg>`,
+      choices:ch.map(x=>({html:R(SYMS[x])})),ans:ch.indexOf(k),
+      exp:()=>{let s='';facsOfSym(M,k).forEach(f=>s+=ring(f.sx,f.sy,24));return{svg:s,legend:[k],
+        why:`この{記号|きごう}は${Q(SYMS[k])}だよ。{地図|ちず}の{下|した}の「{記号|きごう}の{説明|せつめい}」で{確|たし}かめられるよ。{地図|ちず}の{中|なか}の${Q(SYMS[k])}をオレンジの{丸|まる}でかこんだよ。`};}});
+  },
+  symbolPick(M){
+    const k=pick(allSymTypes(M));const others=sample(Object.keys(SYMS).filter(x=>x!==k),3);
+    const ch=shuffle([k,...others]);
+    return mkChoiceQ({kind:'symbol',text:`${Q(SYMS[k])}の{地図記号|ちずきごう}は、どれ？`,
+      choices:ch.map(x=>({html:symMini(x,44)})),ans:ch.indexOf(k),
+      exp:()=>{let s='';facsOfSym(M,k).forEach(f=>s+=ring(f.sx,f.sy,24));return{svg:s,legend:[k],
+        why:`${Q(SYMS[k])}の{記号|きごう}は、オレンジの{丸|まる}でかこんだ{記号|きごう}だよ。{地図|ちず}の{下|した}の「{記号|きごう}の{説明|せつめい}」でも{確|たし}かめられるよ。`};}});
+  },
+  nearestStation(M){
+    const [A,B]=M.stations;
+    for(const f of shuffle(notPark(M))){
+      const dA=dist(f.sx,f.sy,...staPos(A)),dB=dist(f.sx,f.sy,...staPos(B));
+      if(Math.max(dA,dB)<Math.min(dA,dB)*1.4)continue;
+      const near=dA<dB?A:B,far=near===A?B:A;
+      return mkChoiceQ({kind:'nstation',text:`${facN(f)}から{最|もっと}も{近|ちか}い{駅|えき}は、どちら？`,
+        choices:[{html:R(A.name)},{html:R(B.name)}],ans:near===A?0:1,hl:[f.id],
+        exp:()=>({svg:polyl([[f.sx,f.sy],staPos(far)],'#888',4,'10 8')+lineArrow(f.sx,f.sy,...staPos(near),HL,6)+ring(f.sx,f.sy,24),
+          hl:[f.id,near.id],why:`${facN(f)}から{線|せん}を{引|ひ}いてくらべると、${Q(near.name)}のほうが{近|ちか}いよ。`})});
+    }
+    return null;
+  },
+  nearestStop(M){
+    for(const f of shuffle(notPark(M))){
+      const ds=M.stops.map(s=>({s,d:dist(f.sx,f.sy,s.ix,s.iy)})).sort((a,b)=>a.d-b.d);
+      if(ds[1].d<ds[0].d*1.4)continue;
+      const ch=shuffle([ds[0].s,ds[1].s,...sample(ds.slice(2).map(o=>o.s),2)]);
+      const ans=ds[0].s;
+      return mkChoiceQ({kind:'nstop',text:`${facN(f)}から{最|もっと}も{近|ちか}いバス{停|てい}は、どれ？`,
+        choices:ch.map(s=>({html:R(s.name)})),ans:ch.indexOf(ans),hl:[f.id],
+        exp:()=>({svg:polyl([[f.sx,f.sy],stopPos(ds[1].s)],'#888',4,'10 8')+lineArrow(f.sx,f.sy,...stopPos(ans),HL,6)+ring(f.sx,f.sy,24)+ring(ans.ix,ans.iy,26),
+          hl:[f.id,ans.id],why:`${facN(f)}のすぐ{近|ちか}くにあるバス{停|てい}は、${stopN(ans)}だよ。`})});
+    }
+    return null;
+  },
+  km(M){
+    const [d,k]=pick([[1200,1.2],[2000,2],[300,0.3],[1500,1.5],[800,0.8],[2500,2.5],[3000,3],[600,0.6],[1100,1.1],[1800,1.8],[700,0.7],[2400,2.4],[1000,1],[1300,1.3]]);
+    const [f,g]=sample(notPark(M),2);
+    return{kind:'km',input:'num',num:{min:0,max:10,step:0.1,dec:1,unit:'{km|キロメートル}'},ans:k,hl:[f.id,g.id],
+      text:`${facN(f)}から${facN(g)}までの{道|みち}のりは、${d}{m|メートル}です。${d}{m|メートル}を{km|キロメートル}であらわすと、{何|なん}{km|キロメートル}になる？<br>{小数点|しょうすうてん}を{使|つか}って{答|こた}えてね。`,
+      exp:()=>({why:`1000{m|メートル}が1{km|キロメートル}だよ。100{m|メートル}は0.1{km|キロメートル}。だから、${d}{m|メートル}は<b>${k}{km|キロメートル}</b>になるよ。`})};
+  },
+
+  /* --- レベル2 --- */
+  neighbor(M,dirKey){
+    const keys=dirKey?[dirKey]:shuffle(['S','S','N','E','W']);
+    for(const dk of keys){
+      const D=D4[dk];
+      for(const f of shuffle(M.facs)){
+        const g=M.byBlock[(f.c+D.v[0])+','+(f.r+D.v[1])];if(!g)continue;
+        const others=[];
+        for(const ok of Object.keys(D4)){if(ok===dk)continue;const h=M.byBlock[(f.c+D4[ok].v[0])+','+(f.r+D4[ok].v[1])];if(h)others.push(h);}
+        while(others.length<3){const h=pick(M.facs);if(h!==f&&h!==g&&!others.includes(h))others.push(h);}
+        const ch=shuffle([g,...sample(others,3)]);
+        return mkChoiceQ({kind:'neighbor',text:`${facN(f)}の、{道|みち}をはさんで${D.n}{側|がわ}にあるのは、どれ？`,
+          choices:ch.map(x=>({html:R(x.name)})),ans:ch.indexOf(g),hl:[f.id],
+          exp:()=>{const vx=D.v[0],vy=D.v[1];const [x,y]=[f.sx,f.sy];
+            let s=ring(x,y,24)+lineArrow(x,y,g.sx,g.sy,HL,6);
+            const html=otag((x+g.sx)/2+(vx?0:46),(y+g.sy)/2+(vy?0:-34),D.n,'big');
+            return{svg:s,html,hl:[f.id,g.id],why:`{地図|ちず}は{上|うえ}が{北|きた}だよ。${D.n}は${dk==='S'?'{下|した}':dk==='N'?'{上|うえ}':dk==='E'?'{右|みぎ}':'{左|ひだり}'}。${facN(f)}から${D.n}へ{道|みち}をこえると、${facN(g)}があるよ。`};}});
+      }
+    }
+    return null;
+  },
+  railDir(M){
+    const st=pick(M.stations);const ansI=st.id==='A'?0:1;
+    return mkChoiceQ({kind:'rail',text:`${Q(st.name)}を{通|とお}る{鉄道|てつどう}は、どの{方向|ほうこう}に{走|はし}っている？`,
+      choices:[{html:R('{東西|とうざい}')},{html:R('{南北|なんぼく}')},{html:R('{南東|なんとう}')}],ans:ansI,hl:[st.id],
+      exp:()=>{let s='',h='';
+        if(st.id==='A'){const y=RAILY-44;s+=lineArrow(st.cx-90,y,st.cx-190,y,HL,6)+lineArrow(st.cx+90,y,st.cx+190,y,HL,6);
+          h+=otag(st.cx-230,y,'{西|にし}','big')+otag(st.cx+230,y,'{東|ひがし}','big');}
+        else{const x=RAILX-70;s+=lineArrow(x,st.box.y-10,x,st.box.y-90,HL,6)+lineArrow(x,st.box.y+st.box.h+10,x,st.box.y+st.box.h+90,HL,6);
+          h+=otag(x,st.box.y-120,'{北|きた}','big')+otag(x,st.box.y+st.box.h+120,'{南|みなみ}','big');}
+        return{svg:s,html:h,hl:[st.id],legend:['rail'],why:`${Q(st.name)}のところで、{線路|せんろ}は${st.id==='A'?'{左右|さゆう}（{西|にし}と{東|ひがし}）':'{上下|じょうげ}（{北|きた}と{南|みなみ}）'}にのびているね。だから<b>${st.id==='A'?'{東西|とうざい}':'{南北|なんぼく}'}</b>の{方向|ほうこう}に{走|はし}っているよ。`};}});
+  },
+  count(M){
+    if(Math.random()<.2){
+      const n=M.stops.length;
+      return{kind:'count',input:'num',num:{min:0,max:20,step:1,dec:0,unit:'つ'},ans:n,
+        text:`この{地図|ちず}に、バス{停|てい}はいくつある？`,extra:`<svg width="44" height="48" viewBox="-17 -19 34 38">${busIcon(0,0)}</svg>`,
+        exp:()=>{let s='';M.stops.forEach((st,i)=>s+=numCircle(st.ix+20,st.iy-22,i+1));return{svg:s,legend:['bus'],why:`1つずつ{番号|ばんごう}をつけて{数|かぞ}えると、<b>${n}つ</b>あるよ。`};}};
+    }
+    const ks=allSymTypes(M);const multi=ks.filter(k=>facsOfSym(M,k).length>=2);
+    const k=multi.length&&Math.random()<.8?pick(multi):pick(ks);const fs=facsOfSym(M,k);
+    return{kind:'count',input:'num',num:{min:0,max:20,step:1,dec:0,unit:'つ'},ans:fs.length,
+      text:`この{地図|ちず}に、${Q(SYMS[k])}の{地図記号|ちずきごう}はいくつある？`,extra:`<svg width="64" height="64" viewBox="-17 -17 34 34">${sym(k,0,0,1)}</svg>`,
+      exp:()=>{let s='';fs.forEach((f,i)=>s+=ring(f.sx,f.sy,22)+numCircle(f.sx+22,f.sy-24,i+1));return{svg:s,legend:[k],
+        why:`{記号|きごう}に1つずつ{番号|ばんごう}をつけて{数|かぞ}えると、<b>${fs.length}つ</b>あるよ。${k==='school'?'{小学校|しょうがっこう}も{中学校|ちゅうがっこう}も、{同|おな}じ「{文|ぶん}」の{記号|きごう}だよ。':''}`};}};
+  },
+  dir8(M,onlyPair){
+    const pr=onlyPair||findDirPair(M);if(!pr)return null;
+    const {f,g,k}=pr;
+    const ch=shuffle([k,(k+4)%8,(k+1)%8,(k+7)%8]);
+    return mkChoiceQ({kind:'dir8',text:`${facN(f)}から{見|み}て、${facN(g)}はどの{方位|ほうい}にある？`,
+      choices:ch.map(x=>({html:R(DIR8[x])})),ans:ch.indexOf(k),hl:[f.id,g.id],
+      exp:()=>rose(f,g,k,`${facN(f)}を{真|ま}ん{中|なか}にして、{上|うえ}を{北|きた}として{考|かんが}えると、${facN(g)}は<b>${DIR8[k]}</b>にあるよ。`)});
+  },
+
+  /* --- レベル3 --- */
+  ahead(M){
+    const n=M.stops.length;
+    for(let t=0;t<40;t++){
+      const p=rnd(n),k=2+rnd(Math.min(4,n-3));const back=n-k;if(back===k)continue;
+      const q=(p+k)%n;const P=M.stops[p],Qs=M.stops[q];
+      const opts=[...new Set([k,back,k+1,k-1].filter(x=>x>=1))];
+      const ch=[k,back,k+1<n&&k+1!==back?k+1:k-1].filter((x,i,a)=>x>=1&&a.indexOf(x)===i);
+      if(ch.length<3)continue;
+      ch.sort((a,b)=>a-b);
+      return mkChoiceQ({kind:'ahead',text:`${stopN(P)}からバスに{乗|の}るとき、${stopN(Qs)}は、いくつ{先|さき}のバス{停|てい}？`,
+        choices:ch.map(x=>({html:R(x+'つ{先|さき}')})),ans:ch.indexOf(k),hl:[P.id,Qs.id],
+        exp:()=>{let s=pathArrow(busSub(M,p,q),HL,8);for(let i=1;i<=k;i++){const st=M.stops[(p+i)%n];s+=numCircle(st.ix+20,st.iy-22,i);}
+          s+=ring(P.ix,P.iy,24,HL2);
+          return{svg:s,hl:[P.id,Qs.id],legend:['busline'],why:`バスは{矢印|やじるし}の{向|む}きに{進|すす}むよ。${stopN(P)}の{次|つぎ}から1、2…と{数|かぞ}えると、${stopN(Qs)}は<b>${k}つ{先|さき}</b>だよ。{反対|はんたい}{向|む}きに{数|かぞ}えないように{気|き}をつけてね。`};}});
+    }
+    return null;
+  },
+  route(M){ return genRoute(M); },
+
+  /* --- レベル4 --- */
+  leftRight(M){ return genLeftRight(M); },
+  trueStmt(M){ return genTrue(M); },
+  transfer(M){ return genTransfer(M); }
+};
+function findDirPair(M,exclude){
+  const fs=shuffle(M.facs);
+  for(const f of fs)for(const g of fs){
+    if(f===g)continue;const dx=g.sx-f.sx,dy=g.sy-f.sy;if(Math.hypot(dx,dy)<190)continue;
+    let deg=Math.atan2(-dy,dx)*180/Math.PI;if(deg<0)deg+=360;const k=Math.round(deg/45)%8;
+    let diff=Math.abs(deg-k*45);if(diff>180)diff=360-diff;if(diff>11)continue;
+    if(exclude&&exclude(f,g,k))continue;
+    return{f,g,k};
   }
   return null;
 }
-function fmt(x,dec){return String(+(+x).toFixed(dec||0));}
-// ===== GEN-END =====
-
-// ===== 図（解説用） =====
-function roseFig(ans){
-  let s='<svg viewBox="-95 -95 190 190" width="170" height="170" role="img" aria-label="方角">';
-  s+='<circle r="40" fill="#fff" stroke="#9AA59F" stroke-width="2"/>';
-  DIR8.forEach((d,i)=>{const a=(i*45-90)*Math.PI/180,on=d===ans,c=Math.cos(a),sn=Math.sin(a);
-    s+=`<line x1="${c*6}" y1="${sn*6}" x2="${c*40}" y2="${sn*40}" stroke="${on?'#E07A1F':'#B9C2BE'}" stroke-width="${on?7:2}" stroke-linecap="round"/>`;
-    const x=c*68,y=sn*68+(on?9:7);const sz=on?22:16;
-    s+=svgRuby(x,y,d,DR8YOMI[d],sz,on?'#B85A0C':'#333');});
-  return s+'</svg><span class="cap">'+R('{上|うえ}が{北|きた}だよ')+'</span>';
-}
-function lrFig(dir){
-  const ang={N:0,E:90,S:180,W:270}[dir];const rad=a=>(a-90)*Math.PI/180;
-  const L=rad(ang-90),Rr=rad(ang+90);
-  let s='<svg viewBox="-95 -95 190 190" width="170" height="170" role="img" aria-label="進む向き">';
-  s+='<rect x="-92" y="-92" width="184" height="184" rx="12" fill="#F4F6F5"/>';
-  s+=`<g transform="rotate(${ang})"><path d="M0 -60 L22 -22 L8 -22 L8 50 L-8 50 L-8 -22 L-22 -22Z" fill="#E07A1F"/></g>`;
-  s+=svgRuby(Math.cos(L)*62,Math.sin(L)*62+10,'左','ひだり',24,'#B85A0C');
-  s+=svgRuby(Math.cos(Rr)*62,Math.sin(Rr)*62+10,'右','みぎ',24,'#1E6A84');
-  s+='<g transform="translate(-74,-60)"><path d="M0 -18 L7 4 L0 0 L-7 4Z" fill="#333"/>'+svgRuby(0,26,'北','きた',14,'#333')+'</g>';
-  return s+'</svg><span class="cap">'+R('だいだい{色|いろ}の{矢印|やじるし}が<br>バスの{進|すす}む{向|む}きだよ')+'</span>';
+function rose(f,g,k,why){
+  const x=f.sx,y=f.sy;let s='',h='';
+  for(let i=0;i<8;i++){const a=i*Math.PI/4;const ex=x+Math.cos(a)*120,ey=y-Math.sin(a)*120;
+    s+=polyl([[x,y],[ex,ey]],i===k?HL:'#555',i===k?6:2.5,i%2?'6 6':null);
+    h+=otag(x+Math.cos(a)*150,y-Math.sin(a)*150,DIR8[i],i===k?'':'dark');}
+  s+=lineArrow(x,y,g.sx,g.sy,HL,6)+ring(x,y,22)+ring(g.sx,g.sy,24);
+  return{svg:s,html:h,hl:[f.id,g.id],why};
 }
 
-// ===== 地図を描く =====
-function symSVG(k){
-  const st='stroke="#222" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"';
-  switch(k){
-    case 'yubin':return `<circle r="13" fill="#fff" ${st}/><path d="M-6.5 -6H6.5M-6.5 -1H6.5M0 -1V8" fill="none" ${st}/>`;
-    case 'school':return `<text y="10" text-anchor="middle" font-size="28" font-weight="700" fill="#222" font-family="BIZ UDPGothic">文</text>`;
-    case 'byoin':return `<path d="M-12 -12H12V1A12 12 0 0 1 -12 1Z" fill="#fff" ${st}/><path d="M0 -8V6M-7 -1H7" fill="none" ${st}/>`;
-    case 'keisatsu':return `<circle r="13" fill="#fff" ${st}/><path d="M-7 -7L7 7M7 -7L-7 7" fill="none" ${st}/>`;
-    case 'shobo':return `<path d="M-10 -12L0 0L10 -12M0 0V13" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`;
-    case 'shiyaku':return `<circle r="13" fill="#fff" ${st}/><circle r="6" fill="none" ${st}/>`;
-    case 'tosho':return `<path d="M0 -6C-4 -10 -9 -10 -13 -8V9C-9 7 -4 7 0 11C4 7 9 7 13 9V-8C9 -10 4 -10 0 -6ZM0 -6V11" fill="#fff" ${st}/>`;
-    case 'haku':return `<path d="M-13 -3L0 -13L13 -3Z" fill="#fff" ${st}/><path d="M-12 11H12M-7 0V9M0 0V9M7 0V9" fill="none" ${st}/>`;
-    case 'park':return `<circle cy="-4" r="10" fill="#BFDDB0" stroke="#4F7A43" stroke-width="2"/><path d="M0 6V13" stroke="#4F7A43" stroke-width="3"/>`;
-    default:return `<circle r="7.5" fill="#222"/>`;
+/* 道順 */
+function cornerOf(f){
+  if(f.type==='park')return null;const c=f.c,r=f.r;const mx=(GX[c]+GX[c+1])/2,my=(GY[r]+GY[r+1])/2;
+  const ci=f.sx<mx?c:c+1,cj=f.sy<my?r:r+1;
+  if(Math.abs(f.sx-GX[ci])>95||Math.abs(f.sy-GY[cj])>72)return null;return[ci,cj];
+}
+function shapesFrom(e,g){
+  const dx=g[0]-e[0],dy=g[1]-e[1],sx=Math.sign(dx),sy=Math.sign(dy),ax=Math.abs(dx),ay=Math.abs(dy);
+  const mv=[];
+  if(!dx||!dy)mv.push([['h',dx],['v',dy]]);
+  else{
+    mv.push([['h',dx],['v',dy]],[['v',dy],['h',dx]]);
+    for(let k=1;k<ax;k++)mv.push([['h',sx*k],['v',dy],['h',dx-sx*k]]);
+    for(let k=1;k<ay;k++)mv.push([['v',sy*k],['h',dx],['v',dy-sy*k]]);
   }
+  return mv.map(ms=>{const nodes=[e.slice()];let c=e.slice();
+    for(const [ax2,n] of ms){const st=Math.sign(n);for(let i=0;i<Math.abs(n);i++){c=ax2==='h'?[c[0]+st,c[1]]:[c[0],c[1]+st];nodes.push(c.slice());}}
+    return nodes;});
 }
-function drawMap(m){
-  let s='<defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3.2" markerHeight="3.2" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#E07A1F"/></marker><marker id="ah2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3.2" markerHeight="3.2" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#1E6A84"/></marker></defs>';
-  s+='<rect width="1000" height="760" fill="#FAF9F4"/>';
-  m.facs.filter(f=>f.t==='koen').forEach(f=>{s+=`<rect x="${RX[f.c]+20}" y="${RY[f.r]+20}" width="${RX[f.c+1]-RX[f.c]-40}" height="${RY[f.r+1]-RY[f.r]-40}" rx="16" fill="#E6F0DE"/>`;});
-  RY.forEach(y=>{s+=`<rect x="0" y="${y-RW/2}" width="1000" height="${RW}" fill="#D3D6D0"/>`;});
-  RX.forEach(x=>{s+=`<rect x="${x-RW/2}" y="${RY[0]-RW/2}" width="${RW}" height="${RY[3]-RY[0]+RW}" fill="#D3D6D0"/>`;});
-  // 鉄道
-  s+='<line x1="0" y1="40" x2="1000" y2="40" stroke="#222" stroke-width="13"/><line x1="0" y1="40" x2="1000" y2="40" stroke="#fff" stroke-width="7" stroke-dasharray="36 36"/>';
-  // バスの線
-  m.lines.forEach(L=>{
-    const o=m.two?(L.cw?7:-7):0;const col=L.style==='dot'?'#1F4E8C':'#8A3B1F';
-    const x0=RX[1]-o,x1=RX[3]+o,y0=RY[m.ya]-o,y1=RY[m.yb]+o;
-    const dash=L.style==='dot'?'stroke-width="5.5" stroke-dasharray="0.1 10" stroke-linecap="round"':'stroke-width="4" stroke-dasharray="14 8"';
-    s+=`<rect x="${x0}" y="${y0}" width="${x1-x0}" height="${y1-y0}" fill="none" stroke="${col}" ${dash}/>`;
-    m.segs.forEach(sg=>{
-      const from=L.cw?sg.a:sg.b,to=L.cw?sg.b:sg.a;const P=gp(from),Q=gp(to);
-      const dx=Math.sign(Q[0]-P[0]),dy=Math.sign(Q[1]-P[1]);
-      const x=P[0]+dx*24+sg.n[0]*o,y=P[1]+dy*24+sg.n[1]*o;const ang=Math.atan2(dy,dx)*180/Math.PI;
-      s+=`<path d="M10 0L-6 -8L-6 8Z" transform="translate(${x},${y}) rotate(${ang})" fill="${col}"/>`;
-    });
-  });
-  if(m.two) m.stops.forEach((st,i)=>{const p=minsPos(m,i);s+=`<g class="mins" id="M_${i}"><circle cx="${p[0]}" cy="${p[1]}" r="15"/><text x="${p[0]}" y="${p[1]+6}" text-anchor="middle">${m.mins[i]}</text></g>`;});
-  m.facs.forEach(f=>{s+=`<g transform="translate(${f.x},${f.y-20})">${symSVG(TYPES[f.t].sym)}</g>`;});
-  // 方位と縮尺
-  s+='<g transform="translate(46,724)"><path d="M0 -28L10 8L0 2L-10 8Z" fill="#222"/><text y="24" text-anchor="middle" font-size="17" font-weight="700" font-family="BIZ UDPGothic">N</text></g>';
-  s+='<g font-family="BIZ UDPGothic" font-size="16" fill="#222"><line x1="730" y1="728" x2="960" y2="728" stroke="#222" stroke-width="3"/>';
-  for(let i=0;i<=5;i++){const x=730+i*46;s+=`<line x1="${x}" y1="${i%5===0?716:721}" x2="${x}" y2="728" stroke="#222" stroke-width="2"/>`;}
-  s+='<text x="730" y="750" text-anchor="middle">0</text><text x="960" y="750" text-anchor="middle">500m</text></g>';
-  document.getElementById('base').innerHTML=s;
-  // ラベル
-  const busIcon='<svg class="bi" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="1.5" width="12" height="11" rx="2.5" fill="#222"/><rect x="4" y="3.5" width="8" height="4" fill="#fff"/><circle cx="5" cy="14" r="1.7" fill="#222"/><circle cx="11" cy="14" r="1.7" fill="#222"/></svg>';
-  let h='';
-  m.facs.forEach(f=>{h+=`<div class="flab" id="${f.id}" style="left:${f.x}px;top:${f.y-2}px">${R(f.name)}</div>`;});
-  m.stations.forEach(st=>{h+=`<div class="station" id="${st.id}" style="left:${st.x}px;top:${st.y}px">${R(st.name)}</div>`;});
-  m.stops.forEach(sp=>{h+=`<div class="stop${sp.vertical?' v':''}" id="${sp.id}" style="left:${sp.x}px;top:${sp.y}px">${busIcon}${R(sp.name)}</div>`;});
-  h+=`<div class="northlab" style="left:62px;top:690px">${R('{北|きた}')}</div>`;
-  document.getElementById('labels').innerHTML=h;
-  document.getElementById('hl').innerHTML=s.slice(0,s.indexOf('</defs>')+7);
-  // 凡例
-  const syms=[...new Set(m.facs.map(f=>TYPES[f.t].sym))].filter(k=>k!=='park');
-  const order=['yubin','school','byoin','keisatsu','shobo','shiyaku','tosho','haku','dot'];
-  let lg='<b>'+R('{記号|きごう}')+'</b>';
-  order.filter(k=>syms.includes(k)).forEach(k=>{lg+=`<span class="it"><svg width="22" height="22" viewBox="-16 -16 32 32">${symSVG(k)}</svg>${R(SYMNAME[k])}</span>`;});
-  lg+=`<span class="it"><span class="stop" style="position:static;transform:none;font-size:13px;padding:0 5px">${busIcon}</span>バス{停|てい}</span>`.replace(/\{停\|てい\}/,'<ruby>停<rt>てい</rt></ruby>');
-  m.lines.forEach(L=>{const col=L.style==='dot'?'#1F4E8C':'#8A3B1F';const dash=L.style==='dot'?'stroke-width="4.5" stroke-dasharray="0.1 8" stroke-linecap="round"':'stroke-width="3.5" stroke-dasharray="10 6"';
-    lg+=`<span class="it"><svg width="46" height="14" viewBox="0 0 46 14"><line x1="3" y1="7" x2="34" y2="7" stroke="${col}" ${dash}/><path d="M44 7L34 1V13Z" fill="${col}"/></svg>${R(m.two?L.name+'（{通|とお}る{道|みち}と{向|む}き）':'バスの{通|とお}る{道|みち}と{向|む}き')}</span>`;});
-  if(m.two) lg+=`<span class="it"><svg width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#fff" stroke="#333" stroke-width="2"/><text x="12" y="17" text-anchor="middle" font-size="13" font-weight="700" font-family="BIZ UDPGothic">3</text></svg>${R('バス{停|てい}から{次|つぎ}のバス{停|てい}までの{時間|じかん}（分）')}</span>`;
-  document.getElementById('legend').innerHTML=lg;
+function genRoute(M){
+  const corner={};M.facs.forEach(f=>{const c=cornerOf(f);if(c){(corner[c.join()]=corner[c.join()]||[]).push(f);}});
+  const NP=M.pts.length;
+  for(let t=0;t<120;t++){
+    const S=pick(M.stops);const a=M.pts[S.seg],b=M.pts[(S.seg+1)%NP];
+    const goals=M.facs.filter(f=>cornerOf(f));const G=pick(goals);const g=cornerOf(G);
+    const cands=[];
+    for(const e of [a,b]){
+      const d0=[Math.sign(GX[e[0]]-S.rx),Math.sign(GY[e[1]]-S.ry)];
+      if(Math.abs(g[0]-e[0])+Math.abs(g[1]-e[1])<2)continue;
+      for(const nodes of shapesFrom(e,g)){
+        if(nodes.length>1){const f1=[Math.sign(nodes[1][0]-e[0]),Math.sign(nodes[1][1]-e[1])];if(f1[0]===-d0[0]&&f1[1]===-d0[1])continue;}
+        /* 曲がり角 */
+        const pts=[[S.rx,S.ry],...nodes.map(XY)];const turns=[];let prev=d0;
+        for(let i=1;i<nodes.length;i++){const d=[Math.sign(nodes[i][0]-nodes[i-1][0]),Math.sign(nodes[i][1]-nodes[i-1][1])];
+          if(d[0]!==prev[0]||d[1]!==prev[1])turns.push({at:nodes[i-1],d});prev=d;}
+        if(turns.length<1||turns.length>3)continue;
+        cands.push({nodes,pts,turns,d0,key:nodes.map(n=>n.join()).join('|')});
+      }
+    }
+    const good=cands.filter(c=>c.turns.every(tn=>(corner[tn.at.join()]||[]).some(f=>f!==G)));
+    if(!good.length||cands.length<3)continue;
+    const ans=pick(good);
+    const rest=cands.filter(c=>c.key!==ans.key);
+    const same=rest.filter(c=>c.d0[0]===ans.d0[0]&&c.d0[1]===ans.d0[1]&&c.nodes[0].join()===ans.nodes[0].join());
+    let ds=[];if(same.length)ds.push(pick(same));
+    for(const c of shuffle(rest)){if(ds.length>=2)break;if(!ds.includes(c))ds.push(c);}
+    if(ds.length<2)continue;
+    const routes=shuffle([ans,...ds]);
+    /* 説明文 */
+    const marks=[];
+    let txt=`${stopN(S)}から、${d4name(ans.d0[0],ans.d0[1])}に{向|む}かって{歩|ある}きます。`;
+    for(const tn of ans.turns){const L=pick(corner[tn.at.join()].filter(f=>f!==G));marks.push(L);
+      txt+=`${facN(L)}のかどを、${d4name(tn.d[0],tn.d[1])}に{曲|ま}がります。`;}
+    txt+=`そのまままっすぐ{歩|ある}くと、${facN(G)}に{着|つ}きます。`;
+    const ST=[{dash:'16 10',cap:'butt',w:5},{dash:'0.1 11',cap:'round',w:7},{dash:'26 7 3 7',cap:'butt',w:4}];
+    const KANA=['ア','イ','ウ'];const OFF=[-9,0,9];
+    const tags=[];routes.forEach((r,i)=>{const pp=r.pts.map(p=>[p[0]+OFF[i],p[1]+OFF[i]]);
+      let best=null,bd=-1;for(let j=1;j<pp.length;j++){for(const t of [0.35,0.5,0.65]){const x=pp[j-1][0]+(pp[j][0]-pp[j-1][0])*t,y=pp[j-1][1]+(pp[j][1]-pp[j-1][1])*t;
+        if(dist(x,y,...pp[j-1])<40&&dist(x,y,...pp[j])<40)continue;
+        let md=1e9;for(const tg of tags)md=Math.min(md,dist(x,y,tg[0],tg[1]));for(const [ox,oy] of [[S.ix,S.iy],[G.sx,G.sy]])md=Math.min(md,dist(x,y,ox,oy));
+        if(md>bd){bd=md;best=[x,y];}}}
+      tags.push(best||pp[1]);});
+    const pre=()=>{let s='',h='';routes.forEach((r,i)=>{const pp=r.pts.map(p=>[p[0]+OFF[i],p[1]+OFF[i]]);s+=pathArrow(pp,'#1a1a1a',ST[i].w,ST[i].dash,ST[i].cap);});
+      routes.forEach((r,i)=>{s+=`<circle cx="${tags[i][0]}" cy="${tags[i][1]}" r="15" fill="#fff" stroke="#1a1a1a" stroke-width="2.5"/><text x="${tags[i][0]}" y="${tags[i][1]+7}" font-size="19" font-weight="700" text-anchor="middle" fill="#1a1a1a" font-family="BIZ UDPGothic,sans-serif">${KANA[i]}</text>`;});
+      s+=ring(S.ix,S.iy,24,'#1a1a1a',3)+ring(G.sx,G.sy,22,'#1a1a1a',3);return{svg:s,dimBus:true};};
+    const styleSample=i=>`<svg width="80" height="22" viewBox="0 0 80 22" aria-hidden="true">${pathArrow([[4,11],[76,11]],'#1a1a1a',ST[i].w,ST[i].dash,ST[i].cap)}</svg>`;
+    return mkChoiceQ({kind:'route',text:`つぎの{文|ぶん}に{合|あ}う{道順|みちじゅん}は、ア・イ・ウのどれ？<span class="opt" style="margin-top:6px;padding:6px 10px;border:2px solid #333;border-radius:8px;text-indent:0;line-height:2">${txt}</span>`,
+      choices:routes.map((r,i)=>({html:`<span class="mk">${KANA[i]}</span>${styleSample(i)}`})),ans:routes.indexOf(ans),one:false,hl:[S.id,G.id],pre,
+      exp:()=>{const i=routes.indexOf(ans);const pp=ans.pts.map(p=>[p[0]+OFF[i],p[1]+OFF[i]]);let s=pathArrow(pp,HL,9);
+        let h='';ans.turns.forEach((tn,j)=>{const [x,y]=XY(tn.at);s+=ring(x,y,20,HL2,4);});
+        marks.forEach(L=>s+=ring(L.sx,L.sy,22,HL2,4));
+        return{svg:s,html:h,hl:[S.id,G.id,...marks.map(m=>m.id)],why:`{文|ぶん}のとおりに{指|ゆび}でたどってみてね。{最初|さいしょ}は${d4name(ans.d0[0],ans.d0[1])}へ。${marks.map((L,j)=>`${facN(L)}のかどで${d4name(ans.turns[j].d[0],ans.turns[j].d[1])}へ`).join('、')}{曲|ま}がると、${facN(G)}に{着|つ}くね。だから<b>${KANA[i]}</b>だよ。`};}});
+  }
+  return null;
+}
+
+/* 進行方向の左右 */
+function sideList(M,p,q){
+  const NP=M.pts.length;let u1=M.stops[p].u,u2=M.stops[q].u;if(u2<=u1)u2+=NP;
+  const L=[],Rt=[],seen=new Set();
+  for(let m=Math.floor(u1);m<u2;m++){
+    const ov=Math.min(u2,m+1)-Math.max(u1,m);if(ov<0.45)continue;
+    const a=M.pts[m%NP],b=M.pts[(m+1)%NP];const A=XY(a),B=XY(b);const d=[Math.sign(B[0]-A[0]),Math.sign(B[1]-A[1])];
+    const mx=(A[0]+B[0])/2,my=(A[1]+B[1])/2;
+    for(const [c,r] of segBlocks(a,b)){
+      const f=M.byBlock[c+','+r];if(!f||seen.has(f.id))continue;seen.add(f.id);
+      const cx=(GX[c]+GX[c+1])/2,cy=(GY[r]+GY[r+1])/2;const z=d[0]*(cy-my)-d[1]*(cx-mx);
+      (z>0?Rt:L).push({f,mx,my,d});
+    }
+  }
+  return{L,Rt,seen};
+}
+function genLeftRight(M){
+  const n=M.stops.length;
+  for(let t=0;t<80;t++){
+    const p=rnd(n),k=2+rnd(3);if(k>=n-1)continue;const q=(p+k)%n;
+    const {L,Rt,seen}=sideList(M,p,q);if(!L.length||!Rt.length)continue;
+    const left=Math.random()<.5;const pool=left?L:Rt,other=left?Rt:L;
+    const ans=pick(pool);
+    const wrong=sample(other,2).map(o=>o.f);
+    const far=shuffle(M.facs.filter(f=>!seen.has(f.id)));
+    while(wrong.length<3&&far.length)wrong.push(far.pop());
+    const ch=shuffle([ans.f,...wrong]);
+    const P=M.stops[p],Qs=M.stops[q];
+    const side=left?'{左|ひだり}':'{右|みぎ}';
+    return mkChoiceQ({kind:'lr',text:`${stopN(P)}から${stopN(Qs)}までバスで{行|い}くとき、{進行方向|しんこうほうこう}に{向|む}かって${side}{側|がわ}に{見|み}えるのは、どれ？`,
+      choices:ch.map(x=>({html:R(x.name)})),ans:ch.indexOf(ans.f),hl:[P.id,Qs.id],
+      exp:()=>{
+        let s=pathArrow(busSub(M,p,q),HL,8);
+        const {mx,my,d}=ans;const lv=[d[1],-d[0]],rv=[-d[1],d[0]];
+        s+=`<circle cx="${mx}" cy="${my}" r="30" fill="#fff" stroke="${HL2}" stroke-width="4"/>`+lineArrow(mx-d[0]*20,my-d[1]*20,mx+d[0]*24,my+d[1]*24,HL2,6);
+        s+=ring(ans.f.sx,ans.f.sy,24);
+        const h=otag(mx+lv[0]*62,my+lv[1]*62,'{左|ひだり}','big')+otag(mx+rv[0]*62,my+rv[1]*62,'{右|みぎ}','big');
+        return{svg:s,html:h,hl:[P.id,Qs.id,ans.f.id],orient:d,
+          why:`バスは{矢印|やじるし}の{向|む}きに{進|すす}むよ。{進|すす}む{向|む}きに{体|からだ}を{向|む}けると、${facN(ans.f)}は<b>${side}{側|がわ}</b>に{見|み}えるよ。{地図|ちず}の{上|うえ}・{下|した}ではなく、バスの{向|む}きで{考|かんが}えるといいよ。`};}});
+  }
+  return null;
+}
+
+/* 正しい文 */
+function genTrue(M){
+  const n=M.stops.length;
+  const makers={
+    rail(ok){const st=pick(M.stations);const real=st.id==='A'?'{東西|とうざい}':'{南北|なんぼく}',fake=st.id==='A'?'{南北|なんぼく}':'{東西|とうざい}';
+      return{t:`${Q(st.name)}を{通|とお}る{鉄道|てつどう}は、${ok?real:fake}の{方向|ほうこう}に{走|はし}っている。`,why:`${Q(st.name)}を{通|とお}る{鉄道|てつどう}は${real}に{走|はし}っている。`,hl:[st.id]};},
+    dir(ok){const pr=findDirPair(M);if(!pr)return null;const {f,g,k}=pr;const c=ok?k:(k+4)%8;
+      return{t:`${facN(f)}から{見|み}て、${facN(g)}は${DIR8[c]}にある。`,why:`${facN(g)}は${facN(f)}の${DIR8[k]}にある。`,hl:[f.id,g.id]};},
+    count(ok){const ks=allSymTypes(M);const k=pick(ks);const c=facsOfSym(M,k).length;const v=ok?c:(c===1?2:c+pick([-1,1]));
+      return{t:`この{地図|ちず}には、${Q(SYMS[k])}の{記号|きごう}が${v}つある。`,why:`${Q(SYMS[k])}の{記号|きごう}は${c}つ。`,hl:facsOfSym(M,k).map(f=>f.id)};},
+    ahead(ok){const p=rnd(n),k=2+rnd(3);const q=(p+k)%n;const v=ok?k:(n-k!==k?n-k:k+1);
+      return{t:`${stopN(M.stops[q])}は、${stopN(M.stops[p])}の${v}つ{先|さき}のバス{停|てい}である。`,why:`${stopN(M.stops[q])}は${k}つ{先|さき}。`,hl:[M.stops[p].id,M.stops[q].id]};},
+    side(ok){for(let t=0;t<30;t++){const p=rnd(n),k=2+rnd(2);const q=(p+k)%n;const sl=sideList(M,p,q);const all=[...sl.L.map(o=>[o,1]),...sl.Rt.map(o=>[o,0])];if(!all.length)continue;
+        const [o,isL]=pick(all);const real=isL?'{左|ひだり}':'{右|みぎ}',fake=isL?'{右|みぎ}':'{左|ひだり}';
+        return{t:`${stopN(M.stops[p])}から${stopN(M.stops[q])}までバスで{行|い}くとき、${facN(o.f)}は{進行方向|しんこうほうこう}に{向|む}かって${ok?real:fake}{側|がわ}に{見|み}える。`,why:`${facN(o.f)}は${real}{側|がわ}に{見|み}える。`,hl:[M.stops[p].id,M.stops[q].id,o.f.id]};}
+      return null;}
+  };
+  for(let t=0;t<30;t++){
+    const kinds=sample(Object.keys(makers),3);const ti=rnd(3);
+    const st=kinds.map((k,i)=>makers[k](i===ti));if(st.some(x=>!x))continue;
+    return mkChoiceQ({kind:'true',text:'この{地図|ちず}から{読|よ}みとれることとして、{正|ただ}しいものはどれ？',one:true,
+      choices:st.map(x=>({html:R(x.t)})),ans:ti,
+      exp:()=>({hl:st[ti].hl,why:st.map((x,i)=>`${i===ti?'<b>○</b>':'×'} ${x.why}`).join('<br>')})});
+  }
+  return null;
+}
+
+/* 乗りかえと時間 */
+function genTransfer(M){
+  const n=M.stops.length;const A=M.stations[0],B=M.stations[1];
+  const fAB=fwd(M,M.iA,M.iB),fBA=fwd(M,M.iB,M.iA);
+  const [S1,S2]=fAB<=fBA?[A,B]:[B,A];const i1=S1.stop.idx,i2=S2.stop.idx;
+  const back=1+rnd(2);const p=(i1-back+n)%n;if(p===i2)return null;
+  const sum=(i,j)=>{let s=0;for(let x=i;x!==j;x=(x+1)%n)s+=M.segMin[x];return s;};
+  let ok=false;
+  for(let t=0;t<60;t++){
+    for(let x=i1;x!==i2;x=(x+1)%n)M.segMin[x]=2+rnd(4);
+    M.trainMin=2+rnd(6);M.wait=2+rnd(4);
+    const d=sum(i1,i2)-(M.trainMin+M.wait);if(Math.abs(d)>=2){ok=true;break;}
+  }
+  if(!ok)return null;
+  const P=M.stops[p];
+  const a1=sum(p,i1),bus2=sum(i1,i2),busT=a1+bus2,trT=a1+M.wait+M.trainMin;
+  const busFast=busT<trT;
+  const lst=(i,j)=>{const a=[];for(let x=i;x!==j;x=(x+1)%n)a.push(M.segMin[x]);return a.join('＋');};
+  const pre=()=>({svg:timesOverlay(M)});
+  const S2stop=S2.stop;
+  const head=`〇の{中|なか}の{数字|すうじ}は、{次|つぎ}のバス{停|てい}（{駅|えき}）までにかかる{時間|じかん}（{分|ふん}）だよ。<br>`;
+  const ways=`<span class="opt">ア：バスに{乗|の}ったまま、${stopN(S2stop)}まで{行|い}く。</span><span class="opt">イ：${stopN(S1.stop)}でおりて、${Q(S1.name)}から{電車|でんしゃ}に{乗|の}りかえる。{電車|でんしゃ}が{来|く}るまで${FUN(M.wait)}{待|ま}つ。</span>`;
+  const exp=()=>{
+    const bp=busSub(M,p,i2), tp=busSub(M,p,i1), rp=railPath(M);
+    const rail2=S1.id==='A'?rp:rp.slice().reverse();
+    let s=pathArrow(bp,HL,8)+polyl(tp.map(q=>[q[0]+10,q[1]+10]),HL2,6,'14 8')+pathArrow(rail2.map(q=>[q[0]+(S1.id==='A'?0:-16),q[1]+(S1.id==='A'?16:0)]),HL2,6,'14 8');
+    return{svg:s,hl:[P.id,S1.id,S2.id,S1.stop.id,S2stop.id],
+      why:`ア（オレンジ）：${lst(p,i2)}＝<b>${FUN(busT)}</b><br>イ（{青|あお}）：${lst(p,i1)}＋{待|ま}つ${FUN(M.wait)}＋{電車|でんしゃ}${FUN(M.trainMin)}＝<b>${FUN(trT)}</b><br>だから、<b>${busFast?'ア':'イ'}</b>のほうが${FUN(Math.abs(busT-trT))}{早|はや}く{着|つ}くよ。{待|ま}ち{時間|じかん}をたすのをわすれないでね。`};
+  };
+  const q1=mkChoiceQ({kind:'tr1',text:`${head}${stopN(P)}から${Q(S2.name)}まで{行|い}くよ。${ways}{早|はや}く{着|つ}くのは、どちら？`,
+    one:true,choices:[{html:R('ア　バスに{乗|の}ったまま')},{html:R('イ　{電車|でんしゃ}に{乗|の}りかえる')}],ans:busFast?0:1,hl:[P.id,S2.id],pre,exp});
+  const q2={kind:'tr2',input:'num',num:{min:0,max:60,step:1,dec:0,unit:'{分|ふん}'},ans:Math.min(busT,trT),hl:[P.id,S2.id],pre,
+    text:`${head}${stopN(P)}から${Q(S2.name)}まで{行|い}くよ。${ways}{早|はや}く{着|つ}くほうで{行|い}くと、{何分|なんぷん}かかる？`,exp};
+  return[q1,q2];
+}
+
+/* ====================== 問題のセット ====================== */
+const LEVELS={
+  1:{desc:'記号・近い駅やバス停・m→km',sd:'{記号|きごう}・{近|ちか}い{駅|えき}・kmになおす',slots:[['symbolMeaning','symbolPick'],['nearestStation','nearestStop'],['nearestStop','count'],['km']],shuffleFirst:true},
+  2:{desc:'道をはさんだ方位・鉄道の向き・数える・8方位',sd:'{方位|ほうい}・{数|かぞ}える',slots:[['neighbor'],['railDir'],['count'],['dir8','neighbor']]},
+  3:{desc:'方位・いくつ先のバス停・数える・道順',sd:'いくつ{先|さき}・{道順|みちじゅん}',slots:[['dir8','neighbor'],['ahead'],['count','dir8'],['route','ahead']]},
+  4:{desc:'進行方向の左右・正しい文・乗りかえの時間くらべ',sd:'{左右|さゆう}・{乗|の}りかえ',slots:[['leftRight','dir8'],['trueStmt','ahead'],['transfer']]}
+};
+const KINDNAME={symbol:'{地図記号|ちずきごう}',nstation:'{近|ちか}い{駅|えき}',nstop:'{近|ちか}いバス{停|てい}',km:'kmになおす',neighbor:'{方位|ほうい}（{道|みち}をはさんで）',
+  rail:'{鉄道|てつどう}の{方向|ほうこう}',count:'{数|かぞ}える',dir8:'8{方位|ほうい}',ahead:'いくつ{先|さき}',route:'{道順|みちじゅん}',lr:'{進行方向|しんこうほうこう}の{左右|さゆう}',
+  true:'{正|ただ}しい{文|ぶん}',tr1:'{早|はや}く{着|つ}くのは',tr2:'かかる{時間|じかん}'};
+function makeSet(M,L){
+  const lv=LEVELS[L];const out=[];
+  let slots=lv.slots.map(s=>s.slice());
+  if(L===1&&Math.random()<.5)slots[0].reverse();
+  for(const sl of slots){
+    let got=null;
+    for(const g of sl){const r=GEN[g](M);if(r){got=r;break;}}
+    if(!got){/* 予備 */for(const g of ['neighbor','nearestStop','count']){const r=GEN[g](M);if(r){got=r;break;}}}
+    if(Array.isArray(got))out.push(...got);else if(got)out.push(got);
+  }
+  out.forEach(q=>q.M=M);
+  return out;
+}
+function buildQuiz(){
+  const qs=[];let no=0;
+  while(qs.length<settings.count){
+    let set=null;
+    for(let t=0;t<20&&(!set||set.length<3);t++){const M=genMap();set=makeSet(M,settings.level);}
+    no++;set.forEach(q=>q.mapNo=no);qs.push(...set);
+  }
+  qs.length=settings.count;return qs;
+}
+
+/* ====================== 画面 ====================== */
+let QZ=null;
+function show(id){['start','quiz','result'].forEach(x=>$('#'+x).hidden=x!==id);}
+function startView(){
+  $('#ttl').innerHTML=R('{地図|ちず}を{読|よ}もう');
+  $('#lead').innerHTML=R('{町|まち}の{地図|ちず}を{見|み}て、{問題|もんだい}に{答|こた}えるよ。');
+  $('#btnHelp').innerHTML=R('{使|つか}い{方|かた}');
+  $('#chips').innerHTML=R(`<span class="chip">レベル${settings.level}：${LEVELS[settings.level].sd}</span><span class="chip">${settings.count}{問|もん}</span><span class="chip">{音|おと} ${settings.sound?'あり':'なし'}</span>`);
+  show('start');
+}
+function startQuiz(){
+  unlockAudio();
+  QZ={qs:buildQuiz(),i:0,res:[],curMap:null};
+  show('quiz');showQ();
+}
+function renderMap(M){
+  const cv=$('#mapcanvas');
+  cv.innerHTML=baseSVG(M)+`<div class="labs">${labelsHTML(M)}</div><svg class="ov" width="${MW}" height="${MH}" viewBox="0 0 ${MW} ${MH}"></svg><div class="ovh"></div>`;
+  $('#legend').innerHTML=legendHTML(M);
+  QZ.curMap=M;fitMap();
+}
+function setOverlay(parts){
+  const cv=$('#mapcanvas');let svg='',html='',hl=[],lg=[],dim=false;
+  for(const p of parts){if(!p)continue;svg+=p.svg||'';html+=p.html||'';hl=hl.concat(p.hl||[]);lg=lg.concat(p.legend||[]);if(p.dimBus)dim=true;}
+  cv.querySelector('svg.ov').innerHTML=svg;cv.querySelector('.ovh').innerHTML=html;
+  cv.classList.toggle('dimbus',dim);
+  cv.querySelectorAll('.hl').forEach(e=>e.classList.remove('hl'));
+  hl.forEach(id=>cv.querySelectorAll(`[data-id="${id}"]`).forEach(e=>e.classList.add('hl')));
+  $('#legend').querySelectorAll('.li').forEach(e=>e.classList.toggle('hl',lg.includes(e.dataset.k)));
 }
 function fitMap(){
-  const box=document.getElementById('mapbox');if(!box||!box.clientWidth)return;
-  const s=Math.min(box.clientWidth/1000,box.clientHeight/760)*0.995;
-  document.getElementById('mapscale').style.transform=`scale(${s})`;
-  const z=document.getElementById('mapsizer');z.style.width=Math.floor(1000*s)+'px';z.style.height=Math.floor(760*s)+'px';
+  if(!QZ||$('#quiz').hidden)return;
+  const box=$('#mapbox'),fr=$('#mapframe'),cv=$('#mapcanvas');
+  const portrait=innerWidth<innerHeight;
+  const w=box.clientWidth;const h=portrait?Math.max(260,innerHeight*0.56):box.clientHeight;
+  const s=Math.max(0.2,Math.min(w/MW,h/MH));
+  fr.style.width=Math.floor(MW*s)+'px';fr.style.height=Math.floor(MH*s)+'px';cv.style.transform=`scale(${s})`;
 }
-function clearHL(){
-  const hl=document.getElementById('hl');const d=hl.innerHTML;hl.innerHTML=d.slice(0,d.indexOf('</defs>')+7);
-  document.querySelectorAll('.hlon').forEach(e=>e.classList.remove('hlon'));
-  document.querySelectorAll('.mins.on').forEach(e=>e.classList.remove('on'));
-}
-function showHL(ex){
-  clearHL();const hl=document.getElementById('hl');hl.insertAdjacentHTML('beforeend',ex.svg||'');
-  (ex.ids||[]).forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add('hlon');});
-  (ex.mins||[]).forEach(i=>{const e=document.getElementById('M_'+i);if(e)e.classList.add('on');});
-}
-
-// ===== 設定 =====
-const DEF={level:1,count:8,sound:true};
-let S=(()=>{try{const v=JSON.parse(localStorage.getItem('chizu_settings')||'null');return Object.assign({},DEF,v||{});}catch(e){return Object.assign({},DEF);}})();
-function saveS(){try{localStorage.setItem('chizu_settings',JSON.stringify(S));}catch(e){}}
-const LVDESC={1:'レベル1：施設・駅・バス停を探す、mとkmの換算',2:'レベル2：8方位、道をはさんだとなりの建物、数を数える（前半にレベル1も出ます）',3:'レベル3：いくつ先のバス停、道順の文に合う建物（前半にレベル1・2も出ます）',4:'レベル4：進行方向から見た左右、2つの路線の時間比較（待ち時間あり）、正しい文を選ぶ。路線が2本の地図になります'};
-
-// ===== 音 =====
-let ac=null;
-function unlockAudio(){try{if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();}catch(e){}}
-function tone(notes){if(!S.sound||!ac)return;try{let t=ac.currentTime+0.02;notes.forEach(([f,d])=>{const o=ac.createOscillator(),g=ac.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.18,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+d);o.connect(g);g.connect(ac.destination);o.start(t);o.stop(t+d+0.02);t+=d*0.8;});}catch(e){}}
-
-// ===== 画面 =====
-const $=id=>document.getElementById(id);
-function show(id){['start','quiz','result'].forEach(x=>$(x).hidden=x!==id);if(id==='quiz')requestAnimationFrame(fitMap);}
-function refreshStart(){$('chipLv').textContent='レベル'+S.level;$('chipNum').innerHTML=S.count+'もん';}
-const MARK=['ア','イ','ウ','エ'];
-let Qz={items:[],i:0,res:[],curMap:null,sel:-1,done:false};
-
-function startQuiz(){
-  const items=[];let guard=0;
-  while(items.length<S.count&&guard++<50){const st=makeSet(S.level);if(!st)continue;st.qs.forEach(q=>{if(items.length<S.count)items.push({m:st.m,q});});}
-  Qz={items,i:0,res:[],curMap:null,sel:-1,done:false};
-  show('quiz');renderQ();
-}
-function renderQ(){
-  const it=Qz.items[Qz.i],q=it.q;Qz.sel=-1;Qz.done=false;
-  if(Qz.curMap!==it.m){drawMap(it.m);Qz.curMap=it.m;}
-  clearHL();
-  $('prog').textContent=`もんだい ${Qz.i+1} / ${Qz.items.length}`;
-  $('qLv').textContent='レベル'+S.level;
-  let h=`<span class="lvchip">${R(q.cat)}</span><p class="qtext">${R(q.q)}</p>`;
-  if(q.type==='choice'){
-    h+='<div class="opts">'+q.opts.map((o,i)=>`<button class="opt" data-i="${i}"><span class="mk">${MARK[i]}</span><span>${R(o)}</span><span class="res"></span></button>`).join('')+'</div>';
+let numVal=0;
+function showQ(){
+  const q=QZ.qs[QZ.i];
+  if(QZ.curMap!==q.M)renderMap(q.M);
+  $('#prog').innerHTML=R(`{問題|もんだい} ${QZ.i+1} / ${QZ.qs.length}`);
+  $('#mapno').innerHTML=R(`{地図|ちず} ${q.mapNo}`);
+  $('#qkind').innerHTML=R(KINDNAME[q.kind]||'');
+  $('#qtext').innerHTML=R(q.text);
+  $('#qextra').innerHTML=q.extra||'';$('#qextra').hidden=!q.extra;
+  const ans=$('#answers');ans.innerHTML='';
+  const longest=q.input==='choice'?Math.max(...q.choices.map(c=>c.html.replace(/<rt>.*?<\/rt>/g,'').replace(/<[^>]+>/g,'').length)):0;
+  ans.className='answers'+(q.one||longest>7?' one':'');
+  q.sel=null;
+  if(q.input==='choice'){
+    q.choices.forEach((c,i)=>{const b=document.createElement('button');b.className='choice';b.innerHTML=c.html;
+      b.addEventListener('click',()=>{if(q.done)return;q.sel=i;ans.querySelectorAll('.choice').forEach((x,j)=>x.classList.toggle('sel',j===i));$('#btnAnswer').disabled=false;});
+      ans.appendChild(b);});
+    $('#btnAnswer').disabled=true;
   }else{
-    h+=`<div class="numrow"><input id="numIn" inputmode="${q.dec?'decimal':'numeric'}" autocomplete="off" value="" aria-label="こたえ"><button class="stp" id="nUp" aria-label="ふやす">△</button><button class="stp" id="nDn" aria-label="へらす">▽</button><span class="unit">${R(q.unit)}</span></div>`;
+    numVal=0;
+    ans.className='answers one';
+    ans.innerHTML=`<div class="numrow"><button class="step" id="nDown" aria-label="へらす">▽</button><input id="nInput" inputmode="${q.num.dec?'decimal':'numeric'}" value="0" aria-label="こたえ"><button class="step" id="nUp" aria-label="ふやす">△</button><span class="unit">${R(q.num.unit)}</span></div>`;
+    const inp=$('#nInput');const fmt=v=>q.num.dec?String(Math.round(v*10)/10):String(Math.round(v));
+    const setv=v=>{v=Math.max(q.num.min,Math.min(q.num.max,v));numVal=q.num.dec?Math.round(v*10)/10:Math.round(v);inp.value=fmt(numVal);};
+    $('#nUp').addEventListener('click',()=>{if(!q.done)setv(numVal+q.num.step);});
+    $('#nDown').addEventListener('click',()=>{if(!q.done)setv(numVal-q.num.step);});
+    inp.addEventListener('input',()=>{const t=inp.value.replace(/[０-９．]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[^0-9.]/g,'');const v=parseFloat(t);if(!isNaN(v))numVal=v;});
+    inp.addEventListener('change',()=>setv(numVal));
+    $('#btnAnswer').disabled=false;
   }
-  h+='<div id="fb"></div><div class="actions"><button class="btn primary" id="ansBtn" disabled>こたえる</button></div>';
-  $('panel').innerHTML=h;$('panel').scrollTop=0;
-  if(q.type==='choice'){
-    $('panel').querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{if(Qz.done)return;Qz.sel=+b.dataset.i;$('panel').querySelectorAll('.opt').forEach(x=>x.classList.toggle('sel',x===b));$('ansBtn').disabled=false;}));
-  }else{
-    const inp=$('numIn');
-    const getv=()=>{const t=inp.value.replace(/[０-９．]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).trim();return t===''?NaN:parseFloat(t);};
-    const setv=v=>{v=Math.max(q.min,Math.min(q.max,v));inp.value=fmt(v,q.dec);$('ansBtn').disabled=false;};
-    $('nUp').addEventListener('click',()=>{if(Qz.done)return;const v=getv();setv((isNaN(v)?0:v)+q.step);});
-    $('nDn').addEventListener('click',()=>{if(Qz.done)return;const v=getv();setv((isNaN(v)?0:v)-q.step);});
-    inp.addEventListener('input',()=>{$('ansBtn').disabled=isNaN(getv());});
-    inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('ansBtn').disabled)answer();});
-    Qz.getv=getv;
-  }
-  $('ansBtn').addEventListener('click',()=>{if(!Qz.done)answer();else next();});
-  requestAnimationFrame(fitMap);
+  q.done=false;
+  $('#btnAnswer').parentElement.hidden=false;
+  $('#feedback').hidden=true;
+  setOverlay([{hl:q.hl||[]},q.pre?q.pre():null]);
+  $('#qside').scrollTop=0;
+  if(innerWidth<innerHeight)$('#qmain').scrollTop=0;
 }
 function answer(){
-  const it=Qz.items[Qz.i],q=it.q;let ok,ansText;
-  if(q.type==='choice'){ok=Qz.sel===q.ans;ansText=MARK[q.ans]+'　'+R(q.opts[q.ans]);
-    $('panel').querySelectorAll('.opt').forEach((b,i)=>{b.disabled=true;if(i===q.ans){b.classList.add('right');b.querySelector('.res').textContent='せいかい';}else if(i===Qz.sel){b.classList.add('wrong');b.querySelector('.res').textContent='ちがうよ';}});
-  }else{const v=Qz.getv();ok=Math.abs(v-q.ans)<1e-6;ansText=fmt(q.ans,q.dec)+R(q.unit);$('numIn').disabled=true;$('nUp').disabled=true;$('nDn').disabled=true;}
-  Qz.done=true;Qz.res.push({ok,cat:q.cat});
-  tone(ok?[[784,0.16],[1047,0.28]]:[[392,0.22]]);
-  const ex=q.ex;
-  $('fb').innerHTML=`<div class="feedback ${ok?'ok':'ng'}"><div class="big">${ok?'○ せいかい！':'△ ざんねん。こたえは「'+ansText+'」だよ。'}</div>${R(ex.t)}${ex.fig?'<div class="fig">'+ex.fig+'</div>':''}${ok?'':'<div>'+R('{地図|ちず}の だいだい{色|いろ}のところを{見|み}てみよう。')+'</div>'}</div>`;
-  showHL(ex);
-  const b=$('ansBtn');b.disabled=false;b.textContent=Qz.i+1<Qz.items.length?'つぎへ':'けっかを見る';
-  if(Qz.i+1>=Qz.items.length)b.innerHTML=R('けっかを{見|み}る');
-  setTimeout(()=>{$('fb').scrollIntoView({block:'nearest',behavior:'smooth'});},50);
+  const q=QZ.qs[QZ.i];if(q.done)return;
+  unlockAudio();
+  let ok,ansText;
+  if(q.input==='choice'){
+    if(q.sel==null)return;ok=q.sel===q.ans;ansText=q.choices[q.ans].html;
+    $('#answers').querySelectorAll('.choice').forEach((b,j)=>{b.disabled=true;
+      if(j===q.ans){b.classList.add('right');b.insertAdjacentHTML('afterbegin','<span class="mk">○</span>');}
+      else if(j===q.sel){b.classList.add('wrong');b.insertAdjacentHTML('afterbegin','<span class="mk">×</span>');}});
+  }else{
+    const inp=$('#nInput');const t=inp.value.replace(/[０-９．]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));const v=parseFloat(t);
+    if(!isNaN(v))numVal=v;ok=Math.abs(numVal-q.ans)<1e-6;ansText=q.ans+R(q.num.unit);
+    inp.disabled=true;$('#nUp').disabled=true;$('#nDown').disabled=true;
+  }
+  q.done=true;q.ok=ok;QZ.res.push({kind:q.kind,ok});
+  ok?sndOK():sndNG();
+  const fb=$('#feedback');fb.hidden=false;fb.className='feedback '+(ok?'ok':'ng');
+  const at=String(ansText).replace(/<svg[\s\S]*?<\/svg>/g,'').replace(/<span class="mk">(.*?)<\/span>/,'$1').trim();
+  $('#verdict').innerHTML=ok?'○ せいかい！':R(at?`× おしい！ {正|ただ}しい{答|こた}えは「${at}」だよ`:'× おしい！ ○がついているのが{正|ただ}しい{答|こた}えだよ');
+  const e=q.exp?q.exp():{};
+  $('#explain').innerHTML=R(e.why||'');
+  $('#orient').innerHTML=e.orient?orientSVG(e.orient):'';
+  setOverlay([q.pre?q.pre():null,e,{hl:q.hl||[]}]);
+  $('#btnAnswer').parentElement.hidden=true;
+  $('#btnNext').innerHTML=QZ.i+1<QZ.qs.length?'つぎへ':'けっかを{見|み}る'.replace(/\{([^|{}]+)\|([^{}]+)\}/g,'<ruby>$1<rt>$2</rt></ruby>');
+  if(innerWidth<innerHeight){/* 縦向きは地図が見えるように */ }
+  setTimeout(()=>fb.scrollIntoView({behavior:'smooth',block:'nearest'}),60);
 }
-function next(){Qz.i++;if(Qz.i<Qz.items.length)renderQ();else showResult();}
+function orientSVG(d){
+  const ang=Math.atan2(d[1],d[0])*180/Math.PI+90;/* 上向き基準の回転 */
+  const lv=[d[1],-d[0]],rv=[-d[1],d[0]];
+  const cx=90,cy=80;
+  return `<svg width="200" height="160" viewBox="0 0 180 160" aria-hidden="true">
+    <rect x="1" y="1" width="178" height="158" rx="12" fill="#F6F8F7" stroke="#C9D3CE"/>
+    <g transform="translate(${cx},${cy}) rotate(${ang})"><path d="M0,34V-22" stroke="${HL2}" stroke-width="8" stroke-linecap="round"/><path d="M0,-40L-16,-16H16Z" fill="${HL2}"/>
+    <circle cx="0" cy="12" r="11" fill="#fff" stroke="#222" stroke-width="3"/></g>
+    <text x="${cx+lv[0]*58}" y="${cy+lv[1]*58+9}" font-size="26" font-weight="700" text-anchor="middle" fill="#9A4A00" font-family="BIZ UDPGothic,sans-serif">左</text>
+    <text x="${cx+rv[0]*58}" y="${cy+rv[1]*58+9}" font-size="26" font-weight="700" text-anchor="middle" fill="#9A4A00" font-family="BIZ UDPGothic,sans-serif">右</text>
+  </svg>`;
+}
+function nextQ(){
+  if(QZ.i+1<QZ.qs.length){QZ.i++;showQ();}else showResult();
+}
 function showResult(){
-  const n=Qz.res.filter(r=>r.ok).length;
-  $('score').innerHTML=`${Qz.res.length}もん{中|ちゅう} <span class="n">${n}</span>もん せいかい`.replace('{中|ちゅう}','<ruby>中<rt>ちゅう</rt></ruby>');
-  $('reslist').innerHTML=Qz.res.map((r,i)=>`<div class="resrow"><span class="no">${i+1}</span><span>${R(r.cat)}</span><span class="mark ${r.ok?'o':'x'}">${r.ok?'○ せいかい':'△ もういちど'}</span></div>`).join('');
-  tone([[659,0.14],[784,0.14],[1047,0.3]]);
+  const n=QZ.res.length,k=QZ.res.filter(r=>r.ok).length;
+  $('#resTitle').innerHTML=R('{結果|けっか}');
+  $('#score').innerHTML=R(`${n}{問|もん}{中|ちゅう} ${k}{問|もん} せいかい`);
+  $('#reslist').innerHTML=QZ.res.map((r,i)=>`<div class="resrow ${r.ok?'ok':'ng'}"><span>${i+1}</span><span class="m">${r.ok?'○ せいかい':'× もういちど'}</span><span>${R(KINDNAME[r.kind]||'')}</span></div>`).join('');
   show('result');
 }
 
-// 設定パネル
-function renderSet(){
-  $('segLv').innerHTML=[1,2,3,4].map(l=>`<button data-v="${l}" class="${S.level===l?'on':''}">${l}</button>`).join('');
-  $('lvDesc').textContent=LVDESC[S.level];
-  $('cntIn').value=S.count;
-  $('segSnd').querySelectorAll('button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='1')===S.sound));
+/* 拡大 */
+let zs=1;
+function openZoom(){
+  if(!QZ||!QZ.curMap)return;
+  const src=$('#mapcanvas');const z=$('#zframe');
+  z.innerHTML='';const c=src.cloneNode(true);c.removeAttribute('id');c.style.transform='';z.appendChild(c);
+  $('#zoom').hidden=false;
+  const sc=$('#zscroll');zs=Math.max(0.5,Math.min(1.4,(sc.clientWidth-20)/MW*1.3));
+  applyZoom();
 }
-$('segLv').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.level=+b.dataset.v;saveS();renderSet();refreshStart();});
-$('segSnd').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;S.sound=b.dataset.v==='1';saveS();renderSet();});
-const setCnt=v=>{S.count=Math.max(3,Math.min(20,v|0));saveS();renderSet();refreshStart();};
-$('cntUp').addEventListener('click',()=>setCnt(S.count+1));
-$('cntDn').addEventListener('click',()=>setCnt(S.count-1));
-$('cntIn').addEventListener('change',()=>{const v=parseInt($('cntIn').value.replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)),10);setCnt(isNaN(v)?S.count:v);});
-$('gearBtn').addEventListener('click',()=>{renderSet();$('setModal').hidden=false;});
-$('setClose').addEventListener('click',()=>{$('setModal').hidden=true;});
-$('helpBtn').addEventListener('click',()=>{$('helpModal').hidden=false;});
-$('helpClose').addEventListener('click',()=>{try{if($('hideHelp').checked)localStorage.setItem('chizu_hidehelp','1');else localStorage.removeItem('chizu_hidehelp');}catch(e){}$('helpModal').hidden=true;});
-$('startBtn').addEventListener('click',()=>{unlockAudio();startQuiz();});
-$('quitBtn').addEventListener('click',()=>{refreshStart();show('start');});
-$('homeBtn').addEventListener('click',()=>{refreshStart();show('start');});
-$('againBtn').addEventListener('click',()=>{unlockAudio();startQuiz();});
-window.addEventListener('resize',fitMap);
-window.addEventListener('orientationchange',()=>setTimeout(fitMap,200));
-if(window.ResizeObserver)new ResizeObserver(fitMap).observe($('mapbox'));
-document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitMap);
-refreshStart();
-try{if(localStorage.getItem('chizu_hidehelp')!=='1')$('helpModal').hidden=false;else $('hideHelp').checked=true;}catch(e){$('helpModal').hidden=false;}
+function applyZoom(){
+  const z=$('#zframe'),c=z.firstChild;if(!c)return;
+  c.style.transform=`scale(${zs})`;z.style.width=MW*zs+'px';z.style.height=MH*zs+'px';
+}
+
+/* 設定 */
+function openSettings(){
+  const seg=$('#segLevel');seg.innerHTML='';
+  [1,2,3,4].forEach(L=>{const b=document.createElement('button');b.textContent=String(L);b.className=settings.level===L?'on':'';
+    b.addEventListener('click',()=>{settings.level=L;saveSet();openSettings();});seg.appendChild(b);});
+  $('#lvdesc').textContent='レベル'+settings.level+'：'+LEVELS[settings.level].desc;
+  $('#cntInput').value=settings.count;
+  $('#segSound').querySelectorAll('button').forEach(b=>b.className=(settings.sound?'1':'0')===b.dataset.v?'on':'');
+  $('#mSettings').hidden=false;
+}
+function saveSet(){store.set(KEY_SET,settings);}
+function setCount(v){settings.count=Math.max(4,Math.min(20,Math.round(v)||8));$('#cntInput').value=settings.count;saveSet();}
+
+/* 使い方 */
+function openHelp(){
+  $('#helpTtl').innerHTML=R('{使|つか}い{方|かた}');
+  $('#helpList').innerHTML=[
+    '{地図|ちず}を{見|み}て、{右|みぎ}（または{下|した}）の{問題|もんだい}に{答|こた}えるよ。',
+    '{答|こた}えをえらんで、「こたえる」をおしてね。{数字|すうじ}の{問題|もんだい}は、△▽で{数|かず}をかえられるよ。',
+    '{答|こた}えたあとは、{地図|ちず}の{上|うえ}にオレンジ{色|いろ}で、{見|み}るところが{出|で}るよ。',
+    '{地図|ちず}が{小|ちい}さいときは「{大|おお}きく{見|み}る」をおしてね。',
+    '{地図|ちず}は{上|うえ}が{北|きた}だよ。'
+  ].map(t=>`<li>${R(t)}</li>`).join('');
+  $('#noHelpTxt').innerHTML=R('{次回|じかい}から{表示|ひょうじ}しない');
+  $('#chkNoHelp').checked=!!store.get(KEY_HELP,false);
+  $('#mHelp').hidden=false;
+}
+
+/* イベント */
+$('#btnStart').addEventListener('click',startQuiz);
+$('#btnHelp').addEventListener('click',openHelp);
+$('#btnHelpClose').addEventListener('click',()=>{store.set(KEY_HELP,$('#chkNoHelp').checked);$('#mHelp').hidden=true;});
+$('#btnSettings').addEventListener('click',openSettings);
+$('#btnSetClose').addEventListener('click',()=>{setCount(parseInt($('#cntInput').value,10));$('#mSettings').hidden=true;startView();});
+$('#cntUp').addEventListener('click',()=>setCount(settings.count+1));
+$('#cntDown').addEventListener('click',()=>setCount(settings.count-1));
+$('#cntInput').addEventListener('change',()=>setCount(parseInt($('#cntInput').value,10)));
+$('#segSound').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{settings.sound=b.dataset.v==='1';saveSet();openSettings();}));
+$('#btnAnswer').addEventListener('click',answer);
+$('#btnNext').addEventListener('click',nextQ);
+$('#btnQuit').addEventListener('click',()=>{$('#mQuit').hidden=false;});
+$('#btnQuitNo').addEventListener('click',()=>{$('#mQuit').hidden=true;});
+$('#btnQuitYes').addEventListener('click',()=>{$('#mQuit').hidden=true;QZ=null;startView();});
+$('#btnZoom').innerHTML=R('{大|おお}きく{見|み}る');
+$('#btnZoom').addEventListener('click',openZoom);
+$('#zClose').addEventListener('click',()=>{$('#zoom').hidden=true;$('#zframe').innerHTML='';});
+$('#zIn').addEventListener('click',()=>{zs=Math.min(2.2,zs*1.25);applyZoom();});
+$('#zOut').addEventListener('click',()=>{zs=Math.max(0.35,zs/1.25);applyZoom();});
+$('#btnAgain').addEventListener('click',startQuiz);
+$('#btnHome').addEventListener('click',()=>{QZ=null;startView();});
+addEventListener('resize',fitMap);
+addEventListener('orientationchange',()=>setTimeout(fitMap,250));
+if(window.ResizeObserver)new ResizeObserver(()=>fitMap()).observe($('#mapbox'));
+document.addEventListener('gesturestart',e=>{if($('#zoom').hidden)e.preventDefault();});
+
+startView();
+if(!store.get(KEY_HELP,false))openHelp();
 </script>
 </body>
 </html>
